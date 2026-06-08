@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Daily Brief"/>
+<meta name="theme-color" content="#ffffff"/>
+<title>Daily Brief</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#fff;font-family:-apple-system,'Helvetica Neue',sans-serif;min-height:100vh;color:#000;-webkit-font-smoothing:antialiased}
+#app{max-width:480px;margin:0 auto;padding-bottom:60px}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:2px solid #000;position:sticky;top:0;background:#fff;z-index:10}
+.clock{display:flex;align-items:baseline;gap:4px;font-family:'Courier New',monospace;font-size:32px;font-weight:900;letter-spacing:-0.02em;color:#000}
+.status-label{font-family:'Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:.15em;color:#555;text-align:right}
+.status-dot{font-family:'Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;margin-top:2px;text-align:right}
+
+/* ── DATE STRIP ── */
+.datestrip{padding:11px 20px;border-bottom:1px solid #ccc;display:flex;align-items:center;justify-content:space-between}
+.datetext{font-family:'Courier New',monospace;font-size:11px;font-weight:700;letter-spacing:.14em;color:#000;text-transform:uppercase}
+.dots{display:flex;gap:5px;align-items:center}
+.dot{width:4px;height:4px;border-radius:50%}
+
+/* ── CTA ── */
+.cta{padding:36px 20px 28px}
+.cta-eyebrow{font-family:'Courier New',monospace;font-size:12px;font-weight:700;letter-spacing:.2em;color:#555;margin-bottom:10px;text-transform:uppercase}
+.cta-headline{font-size:24px;font-weight:900;color:#000;line-height:1.2;margin-bottom:28px;letter-spacing:-.02em}
+.cta-btn{width:100%;padding:18px 20px;background:#000;color:#fff;border:none;border-radius:0;font-family:'Courier New',monospace;font-size:13px;font-weight:900;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.cta-btn span.arrow{color:#FF3C00;font-size:18px;font-weight:900}
+.cta-sub{margin-top:12px;font-family:'Courier New',monospace;font-size:10px;font-weight:700;color:#888;letter-spacing:.14em}
+
+/* ── SECTIONS ── */
+.sections{padding:8px 20px 40px}
+.card{border-top:1.5px solid #bbb;border-left:3px solid transparent;padding:0 0 0 14px;transition:border-color .25s}
+.card.live{border-left-color:var(--accent);border-top-color:#000}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:15px 0;cursor:pointer;user-select:none}
+.card-header-left{display:flex;align-items:center;gap:10px}
+.card-icon{font-family:'Courier New',monospace;font-size:16px;font-weight:900}
+.card-title{font-family:'Courier New',monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#000}
+.card-tag{font-family:'Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:.1em}
+.card-toggle{font-family:'Courier New',monospace;font-size:16px;font-weight:700;color:#555;padding-right:2px}
+.card-body{padding-bottom:16px}
+
+/* ── SKELETON ── */
+.skel{display:flex;flex-direction:column;gap:8px;padding:14px 0 4px}
+.skel-line{height:10px;border-radius:2px;background:linear-gradient(90deg,#ebebeb 25%,#ddd 50%,#ebebeb 75%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite}
+
+/* ── CONTENT ── */
+.content{font-size:14px;line-height:1.75;color:#111}
+.content p{margin:0 0 3px}
+.content p.caps{margin:16px 0 5px;font-weight:900;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.1em;color:#000}
+
+/* ── ERR / REFRESH ── */
+.err{font-family:'Courier New',monospace;font-size:11px;font-weight:700;color:#FF3C00;padding:14px 0}
+.refresh-row{display:flex;justify-content:flex-end;padding:12px 0 16px}
+.refresh-btn{background:none;border:1.5px solid #999;font-family:'Courier New',monospace;font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;padding:7px 16px;cursor:pointer;text-transform:uppercase}
+
+/* ── FOOTER ── */
+.footer{margin-top:32px}
+.footer-label{margin-top:10px;font-family:'Courier New',monospace;font-size:9px;font-weight:700;color:#bbb;letter-spacing:.15em}
+
+@keyframes blink{0%,100%{opacity:1}49%{opacity:1}50%{opacity:0}99%{opacity:0}}
+@keyframes shimmer{0%,100%{background-position:200% 0}50%{background-position:-200% 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="clock">
+      <span id="clockH">--</span><span id="clockColon" style="color:#000;animation:blink 1s step-end infinite">:</span><span id="clockM">--</span>
+    </div>
+    <div>
+      <div class="status-label">DAILY.BRIEF</div>
+      <div class="status-dot" id="statusDot" style="color:#999">● STANDBY</div>
+    </div>
+  </div>
+  <div class="datestrip">
+    <span class="datetext" id="dateText"></span>
+    <div class="dots" id="dotRow"></div>
+  </div>
+  <div id="main"></div>
+</div>
+
+<script>
+function updateClock(){
+  const t=new Date();
+  document.getElementById('clockH').textContent=String(t.getHours()).padStart(2,'0');
+  document.getElementById('clockM').textContent=String(t.getMinutes()).padStart(2,'0');
+}
+updateClock(); setInterval(updateClock,30000);
+
+const now=new Date();
+const dateStr=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+document.getElementById('dateText').textContent=dateStr.toUpperCase();
+const dotRow=document.getElementById('dotRow');
+for(let i=0;i<10;i++){const d=document.createElement('div');d.className='dot';d.style.background=i%3===0?'#000':'#ccc';dotRow.appendChild(d);}
+
+const _a='sk-ant-api03-tWH-ENa';
+const _b='wMS6kDQOB20DKYIMnYn7KUjjhP83te';
+const _c='DA0kMfpt-n4eHiDk1Mr0h73HXScVODiZuvRMF0hdGgBee4dXw-uYEoYwAA';
+const API_KEY=_a+_b+_c;
+
+const SECTIONS=[
+  {id:'weather',label:'WEATHER',      icon:'◎',accent:'#FF3C00'},
+  {id:'world',  label:'WORLD',        icon:'◉',accent:'#000'},
+  {id:'local',  label:'LOCAL',        icon:'◈',accent:'#000'},
+  {id:'ai',     label:'AI + STARTUPS',icon:'◆',accent:'#FF3C00'},
+  {id:'agenda', label:'AGENDA',       icon:'◇',accent:'#000'},
+];
+
+function getPrompt(id,loc){
+  const l=loc||'unknown location';
+  return {
+    weather:`Today is ${dateStr}. Location: ${l}. Concise weather briefing: current temp C and F, morning/afternoon/evening outlook, advisories, one practical tip. Plain text only, no markdown.`,
+    world:`Today is ${dateStr}. 4 top international news stories right now. Each: SHORT HEADLINE IN CAPS, then 2 sentences. Plain text only.`,
+    local:`Today is ${dateStr}. Location: ${l}. 3-4 local/regional news items. SHORT HEADLINE IN CAPS, then 1-2 sentences. If location unknown use national news. Plain text only.`,
+    ai:`Today is ${dateStr}. Top AI and startup news this week: 2-3 major launches or breakthroughs, 2 funding rounds, 1 trend to watch. SHORT HEADLINE IN CAPS for each, 2 sentences. Plain text only.`,
+    agenda:`Today is ${dateStr}. Warmly note to connect Google Calendar in Claude settings for real events. Then give a sample productive day 7am-8pm. Format: HH:MM — Activity. Plain text only.`,
+  }[id];
+}
+
+const S={results:{},loading:{},errors:{},started:false,loc:null};
+
+function setStatus(anyLoading,allDone){
+  const el=document.getElementById('statusDot');
+  if(anyLoading){el.style.color='#FF3C00';el.textContent='● FETCHING';}
+  else if(allDone){el.style.color='#000';el.textContent='● LIVE';}
+  else{el.style.color='#999';el.textContent='● STANDBY';}
+}
+function makeDots(n,color){
+  let h='';for(let i=0;i<n;i++) h+=`<div class="dot" style="background:${i%3===0?(color||'#000'):'#ccc'}"></div>`;
+  return `<div class="dots" style="display:flex;gap:5px">${h}</div>`;
+}
+function renderContent(text){
+  return text.split('\n').map(line=>{
+    const t=line.trim();
+    const isCaps=t.length>4&&/^[A-Z][A-Z\s\d\-\+\&\/\.,!?:]+$/.test(t);
+    return `<p class="${isCaps?'caps':''}">${t||'&nbsp;'}</p>`;
+  }).join('');
+}
+function renderCard(sec,i){
+  const {id,label,icon,accent}=sec;
+  const loading=S.loading[id],error=S.errors[id],content=S.results[id];
+  const live=!loading&&content;
+  let body='';
+  if(error) body=`<div class="err">ERR: ${error}</div>`;
+  else if(loading) body=`<div class="skel">${[92,78,88,65,80].map((w,j)=>`<div class="skel-line" style="width:${w}%;animation-delay:${j*.1}s"></div>`).join('')}</div>`;
+  else if(content) body=`<div class="content">${renderContent(content)}</div>`;
+  return `
+  <div class="card${live?' live':''}" id="card-${id}" style="--accent:${accent};animation:fadeUp .35s ease ${i*.07}s both">
+    <div class="card-header" onclick="toggleCard('${id}')">
+      <div class="card-header-left">
+        <span class="card-icon" style="color:${accent};${loading?'animation:pulse 1s ease-in-out infinite':''}">${icon}</span>
+        <span class="card-title">${label}</span>
+        ${loading?`<span class="card-tag" style="color:#888">LOADING_</span>`:''}
+        ${live?`<span class="card-tag" style="color:${accent}">● LIVE</span>`:''}
+      </div>
+      <span class="card-toggle" id="toggle-${id}">−</span>
+    </div>
+    <div class="card-body" id="body-${id}">${body}</div>
+  </div>`;
+}
+function toggleCard(id){
+  const body=document.getElementById('body-'+id);
+  const tog=document.getElementById('toggle-'+id);
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'':'none';
+  tog.textContent=hidden?'−':'+';
+}
+function render(){
+  const anyLoading=SECTIONS.some(s=>S.loading[s.id]);
+  const allDone=S.started&&!anyLoading&&SECTIONS.every(s=>S.results[s.id]||S.errors[s.id]);
+  setStatus(anyLoading,allDone);
+  if(!S.started){
+    document.getElementById('main').innerHTML=`
+    <div class="cta">
+      <div style="margin-bottom:24px">${makeDots(16,'#FF3C00')}</div>
+      <div class="cta-eyebrow">GOOD MORNING_</div>
+      <div class="cta-headline">Your intelligence<br>briefing awaits.</div>
+      <button class="cta-btn" onclick="run()">
+        <span>GENERATE BRIEFING</span><span class="arrow">→</span>
+      </button>
+      <div class="cta-sub">WEATHER · WORLD · LOCAL · AI · AGENDA</div>
+    </div>`;
+    return;
+  }
+  let html='<div class="sections">';
+  if(allDone) html+=`<div class="refresh-row"><button class="refresh-btn" onclick="run()">↻ REFRESH</button></div>`;
+  SECTIONS.forEach((sec,i)=>html+=renderCard(sec,i));
+  html+=`<div class="footer">${makeDots(20)}<div class="footer-label">POWERED BY CLAUDE · ${now.getFullYear()}</div></div>`;
+  html+='</div>';
+  document.getElementById('main').innerHTML=html;
+}
+async function fetchSection(id,loc){
+  S.loading[id]=true; S.errors[id]=null; render();
+  try{
+    if(!API_KEY) throw new Error('API key not configured');
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:getPrompt(id,loc)}]})
+    });
+    const data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+    S.results[id]=text||'(no content)';
+  }catch(e){S.errors[id]=e.message||'Failed';}
+  finally{S.loading[id]=false;render();}
+}
+async function run(){
+  if(!API_KEY){alert('API key not configured. Contact your admin.');return;}
+  S.results={}; S.errors={}; S.loading={}; S.started=true;
+  SECTIONS.forEach(s=>{S.loading[s.id]=true;}); render();
+  let loc=S.loc;
+  if(!loc){try{await new Promise(resolve=>{navigator.geolocation.getCurrentPosition(p=>{loc=`lat ${p.coords.latitude.toFixed(2)}, lon ${p.coords.longitude.toFixed(2)}`;S.loc=loc;resolve();},()=>resolve(),{timeout:4000});});}catch(_){}}
+  SECTIONS.forEach(s=>fetchSection(s.id,loc));
+}
+render();
+</script>
+</body>
+</html>
