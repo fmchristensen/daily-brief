@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#ffffff"/>
+<title>Daily Brief</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:#fff;font-family:-apple-system,"Helvetica Neue",sans-serif;min-height:100vh;color:#000;-webkit-font-smoothing:antialiased}
+#app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;height:100vh;height:100dvh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;border-bottom:2px solid #000;background:#fff;flex-shrink:0}
+.clock{font-family:"Courier New",monospace;font-size:30px;font-weight:900;color:#000;letter-spacing:-0.02em}
+.colon{animation:blink 1s step-end infinite}
+.sl{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.15em;color:#555;text-align:right}
+.sd{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em;margin-top:2px;text-align:right}
+.datestrip{padding:9px 20px;border-bottom:1px solid #bbb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dt{font-family:"Courier New",monospace;font-size:11px;font-weight:700;letter-spacing:.12em;color:#000}
+.dots{display:flex;gap:5px}
+.dot{width:4px;height:4px;border-radius:50%}
+.tabs{display:flex;border-bottom:2px solid #000;flex-shrink:0}
+.tab{flex:1;padding:11px 4px;font-family:"Courier New",monospace;font-size:10px;font-weight:900;letter-spacing:.12em;text-align:center;cursor:pointer;border:none;background:#fff;color:#888;text-transform:uppercase;border-bottom:3px solid transparent;margin-bottom:-2px}
+.tab.on{color:#000;border-bottom-color:#FF3C00}
+.pages{flex:1;overflow:hidden;position:relative;min-height:0}
+.page{display:none;position:absolute;inset:0;overflow-y:auto}
+.page.on{display:block}
+.cta{padding:28px 20px 20px}
+.ey{font-family:"Courier New",monospace;font-size:11px;font-weight:900;letter-spacing:.2em;color:#555;margin-bottom:6px}
+.hl{font-size:22px;font-weight:900;color:#000;line-height:1.2;margin-bottom:20px}
+.gbtn{width:100%;padding:16px 20px;background:#000;color:#fff;border:none;font-family:"Courier New",monospace;font-size:13px;font-weight:900;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.arr{color:#FF3C00;font-size:18px}
+.csub{margin-top:8px;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#888;letter-spacing:.12em}
+.secs{padding:4px 20px 60px}
+.rrow{display:flex;justify-content:flex-end;padding:8px 0 12px}
+.rbtn{background:none;border:1.5px solid #999;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;padding:6px 14px;cursor:pointer}
+.card{border-top:1.5px solid #bbb;border-left:3px solid transparent;padding:0 0 0 14px;transition:border-color .2s}
+.card.live{border-left-color:var(--acc);border-top-color:#000}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:11px 0 4px;cursor:pointer;user-select:none}
+.chl{display:flex;align-items:center;gap:10px}
+.ci{font-size:15px;font-weight:900}
+.ct{font-family:"Courier New",monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#000}
+.ctag{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em}
+.ctog{font-family:"Courier New",monospace;font-size:16px;font-weight:700;color:#555}
+.cb{padding:2px 0 14px}
+.sk{display:flex;flex-direction:column;gap:7px;padding:6px 0}
+.skl{height:10px;border-radius:2px;background:linear-gradient(90deg,#ebebeb 25%,#ddd 50%,#ebebeb 75%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
+.con{font-size:14px;line-height:1.7;color:#111}
+.con p{margin:0 0 1px}
+.con p.caps{margin:10px 0 2px;font-weight:900;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.1em;color:#000}
+.er{font-family:"Courier New",monospace;font-size:11px;font-weight:700;color:#FF3C00;padding:8px 0;line-height:1.6}
+.ft{margin-top:24px;padding-bottom:20px}
+.ftl{margin-top:6px;font-family:"Courier New",monospace;font-size:9px;font-weight:700;color:#bbb;letter-spacing:.15em}
+#p1{display:none;flex-direction:column}
+#p1.on{display:flex;height:100%}
+.ams{flex:1;overflow-y:auto;padding:14px 20px 10px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.msg{max-width:92%;padding:10px 14px;font-size:14px;line-height:1.65;word-break:break-word}
+.msg.u{background:#000;color:#fff;align-self:flex-end;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.04em}
+.msg.a{background:#f5f5f5;color:#111;align-self:flex-start;border-left:3px solid #FF3C00}
+.ml{font-family:"Courier New",monospace;font-size:9px;font-weight:700;letter-spacing:.14em;color:#FF3C00;margin-bottom:5px}
+.caps-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cap{font-family:"Courier New",monospace;font-size:9px;font-weight:700;letter-spacing:.1em;padding:5px 10px;border:1.5px solid #ccc;color:#000;background:#fff;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;user-select:none}
+.cap:active,.cap:hover{border-color:#FF3C00;color:#FF3C00}
+.cap.red{color:#FF3C00;border-color:#FF3C00}
+.cap.red:active,.cap.red:hover{border-color:#000;color:#000}
+.air{border-top:2px solid #000;padding:10px 14px 14px;background:#fff;flex-shrink:0}
+.air-row1{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.ai{flex:1;border:1.5px solid #ccc;padding:11px 13px;font-family:"Courier New",monospace;font-size:13px;color:#000;outline:none;background:#fff;min-width:0}
+.ai:focus{border-color:#000}
+.icnbtn{width:42px;height:42px;border:1.5px solid #ccc;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icnbtn.rec{border-color:#FF3C00}
+.icnbtn.rec.active{background:#FF3C00}
+.icnbtn.rec.active svg{stroke:#fff}
+.icnbtn.send{background:#000;border-color:#000}
+.air-row2{display:flex;gap:8px;align-items:center}
+.albl{font-family:"Courier New",monospace;font-size:9px;font-weight:700;letter-spacing:.12em;color:#888}
+.achip{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1.5px solid #ddd;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#555;cursor:pointer;letter-spacing:.08em}
+.achip:active{border-color:#000;color:#000}
+#fileIn{display:none}
+.prev{display:flex;align-items:center;gap:8px;padding:6px 0 2px;border-top:1px solid #eee;margin-top:6px}
+.prevn{font-family:"Courier New",monospace;font-size:10px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prevrm{background:none;border:none;font-size:14px;color:#FF3C00;cursor:pointer;font-weight:900;padding:0 4px}
+.ty{display:flex;gap:5px;padding:4px 0;align-items:center}
+.ty span{width:6px;height:6px;border-radius:50%;background:#999;animation:pu 1.2s ease-in-out infinite}
+.ty span:nth-child(2){animation-delay:.2s}
+.ty span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,49%{opacity:1}50%,99%{opacity:0}}
+@keyframes sh{0%,100%{background-position:200% 0}50%{background-position:-200% 0}}
+@keyframes pu{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <div class="clock" id="clk">--<span class="colon">:</span>--</div>
+    <div><div class="sl">DAILY.BRIEF</div><div class="sd" id="sd">• STANDBY</div></div>
+  </div>
+  <div class="datestrip">
+    <span class="dt" id="dtxt"></span>
+    <div class="dots" id="drow"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" id="tab0" onclick="sw(0)">&#9678; BRIEF</button>
+    <button class="tab" id="tab1" onclick="sw(1)">&#9670; ASSISTANT</button>
+  </div>
+  <div class="pages">
+    <div class="page on" id="p0"><div id="bm"></div></div>
+    <div class="page" id="p1">
+      <div class="ams" id="am">
+        <div class="msg a">
+          <div class="ml">ASSISTANT_</div>
+          Good morning, Federico. I have access to your Google Calendar, Gmail and Drive via Claude.<br><br>
+          Ask me anything &mdash; or tap a shortcut:
+          <div class="caps-row">
+            <span class="cap" onclick="ask('What is on my agenda today?')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              TODAY
+            </span>
+            <span class="cap" onclick="ask('What is on my agenda tomorrow?')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="15" x2="12" y2="19"/><line x1="10" y1="17" x2="14" y2="17"/></svg>
+              TOMORROW
+            </span>
+            <span class="cap" onclick="ask('Show my unread emails')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              INBOX
+            </span>
+            <span class="cap red" onclick="ask('What is my glucose level?')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 1 5 5c0 4-5 11-5 11S7 11 7 7a5 5 0 0 1 5-5z"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/></svg>
+              GLUCOSE
+            </span>
+            <span class="cap" onclick="ask('Show recent files in my Drive')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              DRIVE
+            </span>
+            <span class="cap" onclick="ask('What is the latest AI news today?')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              AI NEWS
+            </span>
+            <span class="cap" onclick="ask('How long to drive to Palermo, Buenos Aires?')">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              MAPS
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="air">
+        <div class="air-row1">
+          <input class="ai" id="ainp" placeholder="Ask anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"/>
+          <button class="icnbtn rec" id="micBtn" onclick="toggleVoice()" title="Voice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></svg>
+          </button>
+          <button class="icnbtn send" onclick="send()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF3C00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+        <div class="air-row2">
+          <span class="albl">ATTACH:</span>
+          <label class="achip" for="fileIn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            FILE / IMAGE
+          </label>
+          <input type="file" id="fileIn" accept="*/*" onchange="onFile(event)"/>
+        </div>
+        <div class="prev" id="prevBar" style="display:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span class="prevn" id="prevName"></span>
+          <button class="prevrm" onclick="clearFile()">&#10005;</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function tick(){
+  var t=new Date(),h=String(t.getHours()).padStart(2,'0'),m=String(t.getMinutes()).padStart(2,'0');
+  document.getElementById('clk').innerHTML=h+'<span class="colon">:</span>'+m;
+}
+tick();setInterval(tick,30000);
+
+var now=new Date();
+var DS=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+document.getElementById('dtxt').textContent=DS.toUpperCase();
+var dr=document.getElementById('drow');
+for(var i=0;i<10;i++){var d=document.createElement('div');d.className='dot';d.style.background=i%3===0?'#000':'#ccc';dr.appendChild(d);}
+
+var _a='sk-ant-api03-tWH-ENa',_b='wMS6kDQOB20DKYIMnYn7KUjjhP83te',_c='DA0kMfpt-n4eHiDk1Mr0h73HXScVODiZuvRMF0hdGgBee4dXw-uYEoYwAA';
+var AK=_a+_b+_c;
+
+var MCP_SERVERS=[
+  {type:'url',url:'https://calendarmcp.googleapis.com/mcp/v1',name:'google-calendar'},
+  {type:'url',url:'https://gmailmcp.googleapis.com/mcp/v1',name:'gmail'},
+  {type:'url',url:'https://drivemcp.googleapis.com/mcp/v1',name:'google-drive'}
+];
+
+function sw(i){
+  document.getElementById('tab0').classList.toggle('on',i===0);
+  document.getElementById('tab1').classList.toggle('on',i===1);
+  document.getElementById('p0').classList.toggle('on',i===0);
+  document.getElementById('p1').classList.toggle('on',i===1);
+}
+
+var SECS=[
+  {id:'weather',label:'WEATHER',icon:'&#9678;',acc:'#FF3C00'},
+  {id:'world',label:'WORLD',icon:'&#9673;',acc:'#000'},
+  {id:'local',label:'LOCAL',icon:'&#9672;',acc:'#000'},
+  {id:'ai',label:'AI + STARTUPS',icon:'&#9670;',acc:'#FF3C00'}
+];
+function getP(id,loc){
+  var l=loc||'unknown location';
+  return {
+    weather:'Today: '+DS+'. Location: '+l+'. Weather briefing. No preamble.\nWEATHER - [CITY]\nNow: [temp C/F, condition]\nMorning: [brief]\nAfternoon: [brief]\nEvening: [brief]\nTip: [one tip]\nMax 100 words. Plain text only.',
+    world:'Today: '+DS+'. Top 4 world news now. Each:\n[HEADLINE CAPS]\n[2 sentences]\nNo intro. Max 180 words. Plain text.',
+    local:'Today: '+DS+'. Location: '+l+'. Top 3 local news. Each:\n[HEADLINE CAPS]\n[1-2 sentences]\nNo intro. Max 140 words. Plain text.',
+    ai:'Today: '+DS+'. Top AI/startup news. Each:\n[HEADLINE CAPS]\n[2 sentences]\n2 breakthroughs+2 funding+1 trend. No intro. Max 180 words. Plain text.'
+  }[id];
+}
+var S={r:{},l:{},e:{},started:false,loc:null};
+function setSt(ld,dn){
+  var el=document.getElementById('sd');
+  if(ld){el.style.color='#FF3C00';el.textContent='• FETCHING';}
+  else if(dn){el.style.color='#000';el.textContent='• LIVE';}
+  else{el.style.color='#999';el.textContent='• STANDBY';}
+}
+function mkDots(n,c){
+  var h='';for(var i=0;i<n;i++) h+='<div class="dot" style="background:'+(i%3===0?(c||'#000'):'#ccc')+'"></div>';
+  return '<div class="dots" style="display:flex;gap:5px">'+h+'</div>';
+}
+function rcon(text){
+  return text.split('\n').map(function(line){
+    var t=line.trim();
+    var caps=t.length>3&&/^[A-Z][A-Z\s\d\-\+\&\/\.,!?:\(\)]+$/.test(t);
+    return '<p class="'+(caps?'caps':'')+'">'+( t||'&nbsp;')+'</p>';
+  }).join('');
+}
+function rcard(sec,i){
+  var id=sec.id,label=sec.label,icon=sec.icon,acc=sec.acc;
+  var ld=S.l[id],err=S.e[id],con=S.r[id],live=!ld&&con;
+  var body='';
+  if(err) body='<div class="er">'+err+'</div>';
+  else if(ld) body='<div class="sk">'+[88,70,80,60,75].map(function(w,j){return '<div class="skl" style="width:'+w+'%;animation-delay:'+(j*.12)+'s"></div>';}).join('')+'</div>';
+  else if(con) body='<div class="con">'+rcon(con)+'</div>';
+  return '<div class="card'+(live?' live':'')+'" id="c-'+id+'" style="--acc:'+acc+';animation:fu .3s ease '+(i*.08)+'s both">'
+    +'<div class="ch" onclick="tog(\''+id+'\')"><div class="chl">'
+    +'<span class="ci" style="color:'+acc+';'+(ld?'animation:pu 1s ease-in-out infinite':'')+'">'+icon+'</span>'
+    +'<span class="ct">'+label+'</span>'
+    +(ld?'<span class="ctag" style="color:#888">LOADING_</span>':'')
+    +(live?'<span class="ctag" style="color:'+acc+'">• LIVE</span>':'')
+    +'</div><span class="ctog" id="t-'+id+'">&#8722;</span></div>'
+    +'<div class="cb" id="b-'+id+'">'+body+'</div></div>';
+}
+function tog(id){
+  var b=document.getElementById('b-'+id),t=document.getElementById('t-'+id);
+  var h=b.style.display==='none';b.style.display=h?'':'none';t.innerHTML=h?'&#8722;':'+';
+}
+function rb(){
+  var al=SECS.some(function(s){return S.l[s.id];});
+  var ad=S.started&&!al&&SECS.every(function(s){return S.r[s.id]||S.e[s.id];});
+  setSt(al,ad);
+  if(!S.started){
+    document.getElementById('bm').innerHTML=
+      '<div class="cta">'
+      +'<div style="margin-bottom:18px">'+mkDots(16,'#FF3C00')+'</div>'
+      +'<div class="ey">GOOD MORNING_</div>'
+      +'<div class="hl">Your intelligence<br>briefing awaits.</div>'
+      +'<button class="gbtn" onclick="run()"><span>GENERATE BRIEFING</span><span class="arr">&#8594;</span></button>'
+      +'<div class="csub">WEATHER &middot; WORLD &middot; LOCAL &middot; AI</div>'
+      +'</div>';
+    return;
+  }
+  var html='<div class="secs">';
+  if(ad) html+='<div class="rrow"><button class="rbtn" onclick="run()">&#8635; REFRESH</button></div>';
+  SECS.forEach(function(sec,i){html+=rcard(sec,i);});
+  html+='<div class="ft">'+mkDots(20)+'<div class="ftl">POWERED BY CLAUDE &middot; '+now.getFullYear()+'</div></div></div>';
+  document.getElementById('bm').innerHTML=html;
+}
+async function fetchS(id,loc,delay){
+  await new Promise(function(r){setTimeout(r,delay);});
+  S.l[id]=true;S.e[id]=null;rb();
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:500,messages:[{role:'user',content:getP(id,loc)}]})
+    });
+    var data=await res.json();
+    if(data.error) throw new Error(data.error.message);
+    var text=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    S.r[id]=text||'(no content)';
+  }catch(e){S.e[id]=e.message||'Failed';}
+  S.l[id]=false;rb();
+}
+async function run(){
+  S.r={};S.e={};S.l={};S.started=true;
+  SECS.forEach(function(s){S.l[s.id]=true;});rb();
+  var loc=S.loc;
+  if(!loc){try{await new Promise(function(res){navigator.geolocation.getCurrentPosition(function(p){loc='lat '+p.coords.latitude.toFixed(2)+', lon '+p.coords.longitude.toFixed(2);S.loc=loc;res();},res,{timeout:4000});});}catch(e){}}
+  SECS.forEach(function(s,i){fetchS(s.id,loc,i*2200);});
+}
+
+// GLUCOSE
+var LLU_E='fmchristensen@gmail.com',LLU_P='Fercamfel1963!';
+var gTok=null,gPid=null,gEp=null;
+var LLU_EPS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
+var LLU_H={'Content-Type':'application/json','product':'llu.android','version':'4.7.0','Accept':'application/json'};
+async function lluLogin(){
+  for(var i=0;i<LLU_EPS.length;i++){
+    try{
+      var r=await fetch(LLU_EPS[i]+'/llu/auth/login',{method:'POST',headers:LLU_H,body:JSON.stringify({email:LLU_E,password:LLU_P})});
+      var d=await r.json();
+      if(d.status===0&&d.data&&d.data.authTicket){
+        gTok=d.data.authTicket.token;gEp=LLU_EPS[i];
+        if(d.data.redirect&&d.data.region){
+          gEp='https://api-'+d.data.region+'.libreview.io';
+          var r2=await fetch(gEp+'/llu/auth/login',{method:'POST',headers:LLU_H,body:JSON.stringify({email:LLU_E,password:LLU_P})});
+          var d2=await r2.json();if(d2.data&&d2.data.authTicket)gTok=d2.data.authTicket.token;
+        }
+        return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+async function lluConn(){
+  try{
+    var r=await fetch(gEp+'/llu/connections',{headers:Object.assign({},LLU_H,{'Authorization':'Bearer '+gTok})});
+    var d=await r.json();if(d.data&&d.data.length>0){gPid=d.data[0].patientId;return d.data[0];}
+  }catch(e){}return null;
+}
+async function lluGraph(){
+  try{
+    var r=await fetch(gEp+'/llu/connections/'+gPid+'/graph',{headers:Object.assign({},LLU_H,{'Authorization':'Bearer '+gTok})});
+    var d=await r.json();return d.data||null;
+  }catch(e){return null;}
+}
+function mmol(v){return (v/18.0182).toFixed(1);}
+function garrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','?','?'][t]||'&#8594;';}
+function gstat(v){
+  if(v<70)return{lab:'LOW',col:'#FF3C00'};
+  if(v<=180)return{lab:'IN RANGE',col:'#000'};
+  if(v<=250)return{lab:'HIGH',col:'#FF3C00'};
+  return{lab:'VERY HIGH',col:'#FF3C00'};
+}
+async function getGlucose(){
+  try{
+    if(!gTok){var ok=await lluLogin();if(!ok)return null;}
+    if(!gPid){var c=await lluConn();if(!c)return null;}
+    var g=await lluGraph();if(!g)return null;
+    var cur=g.connection&&g.connection.glucoseMeasurement;
+    if(!cur)return null;
+    return{value:cur.Value,mmol:mmol(cur.Value),trend:cur.TrendArrow,ts:cur.Timestamp,hist:(g.graphData||[]).slice(-8).map(function(p){return{v:p.Value};})};
+  }catch(e){return null;}
+}
+function renderGlucose(gd){
+  var st=gstat(gd.value);
+  var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.col+';margin-bottom:8px">• GLUCOSE '+st.lab+'</div>';
+  msg+='<div style="font-size:30px;font-weight:900;font-family:Courier New,monospace;color:'+st.col+';line-height:1">'+gd.mmol+' <span style="font-size:14px;font-weight:400;color:#000">mmol/L</span> <span style="font-size:22px">'+garrow(gd.trend)+'</span></div>';
+  msg+='<div style="font-size:11px;color:#888;margin-top:4px;font-family:Courier New,monospace">'+gd.value+' mg/dL &middot; '+gd.ts+'</div>';
+  if(gd.hist&&gd.hist.length){
+    var vals=gd.hist.map(function(p){return p.v;});
+    var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+    msg+='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:4px;height:44px">';
+    vals.forEach(function(v){var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);var h=Math.max(6,Math.round(pct*.38)+6);msg+='<div style="width:9px;height:'+h+'px;background:'+gstat(v).col+';border-radius:1px"></div>';});
+    msg+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#bbb;margin-top:3px;letter-spacing:.08em">LAST 8 READINGS</div>';
+  }
+  return msg;
+}
+
+// LOCATION — top-level global
+var userLat=null,userLng=null,userLocStr='Buenos Aires, Argentina';
+function updateLocation(){
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(function(p){
+    userLat=p.coords.latitude; userLng=p.coords.longitude;
+    userLocStr='lat '+userLat.toFixed(5)+', lon '+userLng.toFixed(5);
+    S.loc=userLocStr;
+  },function(){},{enableHighAccuracy:true,timeout:8000,maximumAge:60000});
+}
+updateLocation();
+setInterval(updateLocation,300000);
+
+// MAPS helpers — top-level global
+var MAPS_WORDS=['directions','how long','travel time','how far','get to','drive to','walk to','uber to','route to','navigate to','take me to','open maps','maps to','mapa','cuánto tarda','tiempo a','cómo llegar','distancia a'];
+function isMapsQuery(t){var tl=t.toLowerCase();return MAPS_WORDS.some(function(w){return tl.indexOf(w)>=0;});}
+function extractDestination(text){
+  var patterns=[
+    /(?:directions|drive|walk|navigate|get|take me|route|how long|how far|time)(?:\s+to|\s+from\s+\S+\s+to)\s+(.+)/i,
+    /(?:cuánto tarda|tiempo a|cómo llegar|distancia a)\s+(.+)/i,
+    /(?:to|a)\s+([A-Z][^?!.]+)/
+  ];
+  for(var i=0;i<patterns.length;i++){var m=text.match(patterns[i]);if(m&&m[1])return m[1].trim().replace(/\?$/,'');}
+  return null;
+}
+function mapsUrl(destination,mode){
+  var origin=userLat&&userLng?userLat+','+userLng:'';
+  var base='https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(destination);
+  if(origin)base+='&origin='+encodeURIComponent(origin);
+  base+='&travelmode='+(mode||'driving');
+  return base;
+}
+function renderMapsCard(destination,reply){
+  var html=reply.replace(/\n/g,'<br>');
+  html+='<div style="margin-top:12px;border-top:1px solid #e0e0e0;padding-top:10px">';
+  html+='<div style="font-family:Courier New,monospace;font-size:9px;font-weight:700;letter-spacing:.12em;color:#888;margin-bottom:8px">OPEN IN GOOGLE MAPS</div>';
+  html+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  html+='<a href="'+mapsUrl(destination,'driving')+'" target="_blank" style="padding:8px 12px;background:#000;color:#fff;text-decoration:none;font-family:Courier New,monospace;font-size:10px;font-weight:700;letter-spacing:.1em">DRIVE &rarr;</a>';
+  html+='<a href="'+mapsUrl(destination,'transit')+'" target="_blank" style="padding:8px 12px;background:#fff;color:#000;text-decoration:none;font-family:Courier New,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;border:1.5px solid #ccc">TRANSIT</a>';
+  html+='<a href="'+mapsUrl(destination,'walking')+'" target="_blank" style="padding:8px 12px;background:#fff;color:#000;text-decoration:none;font-family:Courier New,monospace;font-size:10px;font-weight:700;letter-spacing:.1em;border:1.5px solid #ccc">WALK</a>';
+  html+='</div>';
+  html+='<div style="font-family:Courier New,monospace;font-size:9px;color:#bbb;margin-top:6px">From: '+(userLat?'your location':'unknown location')+'</div>';
+  html+='</div>';
+  return html;
+}
+
+// ASSISTANT state
+var hist=[];
+var attachedFile=null;
+
+function onFile(e){
+  var f=e.target.files[0];if(!f)return;
+  attachedFile=f;
+  document.getElementById('prevName').textContent=f.name+' ('+Math.round(f.size/1024)+'KB)';
+  document.getElementById('prevBar').style.display='flex';
+}
+function clearFile(){attachedFile=null;document.getElementById('prevBar').style.display='none';document.getElementById('fileIn').value='';}
+
+function am(role,html,isHtml){
+  var msgs=document.getElementById('am');
+  var div=document.createElement('div');
+  div.className='msg '+(role==='u'?'u':'a');
+  if(role==='a') div.innerHTML='<div class="ml">ASSISTANT_</div>'+(isHtml?html:html.replace(/\n/g,'<br>'));
+  else div.textContent=html;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function showTy(){
+  var msgs=document.getElementById('am');
+  var div=document.createElement('div');div.className='msg a';div.id='ty';
+  div.innerHTML='<div class="ml">ASSISTANT_</div><div class="ty"><span></span><span></span><span></span></div>';
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+function rmTy(){var t=document.getElementById('ty');if(t)t.remove();}
+
+async function callClaude(messages,useTools){
+  var body={
+    model:'claude-haiku-4-5',
+    max_tokens:1000,
+    system:'You are Federico Christensen personal assistant. Today is '+DS+'. Location: '+(userLat?'Buenos Aires, lat '+userLat+', lon '+userLng:'Buenos Aires, Argentina')+'. You have access to his Google Calendar, Gmail and Google Drive. When asked about schedule, emails or files use the connected tools to fetch real data. Format responses cleanly without markdown. Plain text.',
+    messages:messages
+  };
+  if(useTools){
+    body.mcp_servers=MCP_SERVERS;
+  }
+  var res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':AK,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true',
+      'anthropic-beta':'mcp-client-2025-04-04'
+    },
+    body:JSON.stringify(body)
+  });
+  return await res.json();
+}
+
+// ask() — shortcut chips call this
+function ask(text){
+  document.getElementById('ainp').value=text;
+  send();
+}
+
+async function send(){
+  var inp=document.getElementById('ainp');
+  var text=inp.value.trim();
+  if(!text&&!attachedFile)return;
+
+  // Glucose
+  var glcW=['glucose','sugar','blood sugar','cgm','libre','mg/dl','mmol','hypo','hyper','glycemia','reading','nivel de glucosa'];
+  if(text&&glcW.some(function(w){return text.toLowerCase().indexOf(w)>=0;})){
+    inp.value='';am('u',text,false);showTy();
+    var gd=await getGlucose();rmTy();
+    if(gd){
+      var gHtml=renderGlucose(gd);
+      try{
+        var iRes=await callClaude([{role:'user',content:'My glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL). Give 1-2 sentence interpretation and recommendation. Direct, no preamble.'}],false);
+        if(!iRes.error){
+          var interp=iRes.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
+          gHtml+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
+        }
+      }catch(e){}
+      am('a',gHtml,true);
+    }else{
+      am('a','Could not connect to LibreLinkUp right now. Make sure your FreeStyle Libre sensor is syncing to the LibreLink app and try again.',false);
+    }
+    return;
+  }
+
+  // Maps
+  if(text&&isMapsQuery(text)){
+    inp.value='';am('u',text,false);showTy();
+    var dest=extractDestination(text);
+    var locCtx=userLat?'User location: lat '+userLat.toFixed(5)+', lon '+userLng.toFixed(5)+' (Buenos Aires).':'Location unknown.';
+    try{
+      var mRes=await callClaude([{role:'user',content:locCtx+'\nUser: "'+text+'"\nEstimate travel times to "'+(dest||text)+'" by car, transit and walking. Realistic Buenos Aires estimates. Plain text.'}],false);
+      rmTy();
+      if(mRes.error)throw new Error(mRes.error.message);
+      var mReply=mRes.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+      am('a',renderMapsCard(dest||text,mReply),true);
+    }catch(e){rmTy();am('a','ERR: '+e.message,false);}
+    return;
+  }
+
+  // General message
+  inp.value='';
+  var uContent=[],dHtml='';
+  if(attachedFile){
+    var f=attachedFile,isImg=f.type.startsWith('image/');
+    dHtml=(isImg?'[IMAGE] ':'[FILE] ')+f.name+(text?' — '+text:'');
+    var fData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
+    if(isImg){var b64=fData.split(',')[1];uContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
+    else{uContent.push({type:'text',text:'[File: '+f.name+']\n'+fData.substring(0,8000)});}
+    if(text)uContent.push({type:'text',text:text});
+    clearFile();
+  }else{dHtml=text;uContent=text;}
+
+  am('u',dHtml,false);
+  hist.push({role:'user',content:uContent});
+  showTy();
+
+  try{
+    var googleW=['calendar','agenda','schedule','event','meeting','email','gmail','mail','inbox','drive','file','document','sheet','doc','tomorrow','today','week'];
+    var chkText=typeof uContent==='string'?uContent:text;
+    var needsGoogle=googleW.some(function(w){return chkText.toLowerCase().indexOf(w)>=0;});
+    var data=await callClaude(hist,needsGoogle);
+    rmTy();
+    if(data.error)throw new Error(data.error.message);
+    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    if(!reply&&data.content.some(function(b){return b.type==='tool_result'||b.type==='mcp_tool_result';})){
+      hist.push({role:'assistant',content:data.content});
+      var data2=await callClaude(hist,false);
+      reply=data2.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+      hist.push({role:'assistant',content:reply||'(processed)'});
+    }else{
+      hist.push({role:'assistant',content:reply||'(processed)'});
+    }
+    am('a',reply||'Done.',false);
+  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
+}
+
+// VOICE
+var recog=null,isRec=false;
+if(window.SpeechRecognition||window.webkitSpeechRecognition){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recog=new SR();recog.continuous=false;recog.interimResults=true;recog.lang='en-US';
+  recog.onresult=function(e){document.getElementById('ainp').value=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');};
+  recog.onend=function(){isRec=false;document.getElementById('micBtn').classList.remove('active');};
+}
+function toggleVoice(){
+  if(!recog){alert('Voice not supported in this browser.');return;}
+  if(isRec){recog.stop();isRec=false;document.getElementById('micBtn').classList.remove('active');}
+  else{recog.start();isRec=true;document.getElementById('micBtn').classList.add('active');}
+}
+
+rb();
+</script>
+</body>
+</html>
