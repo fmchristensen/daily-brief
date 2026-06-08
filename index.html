@@ -230,7 +230,202 @@ function rb(){
 // Staggered fetch — 1.5s delay between each to avoid rate limit
 async function fetchS(id,loc,delay){
   await new Promise(function(r){setTimeout(r,delay);});
-  S.l[id]=true;S.e[id]=null;rb();
+  S.l[id]=true;S.e[id]=null;
+// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
+var LLU_EMAIL='fmchristensen@gmail.com';
+var LLU_PASS='Fercamfel1963!';
+var gToken=null,gPatientId=null;
+var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
+var gEndpoint=null;
+
+var LLU_HEADERS={
+  'Content-Type':'application/json',
+  'product':'llu.android',
+  'version':'4.7.0',
+  'Accept':'application/json'
+};
+
+async function lluLogin(){
+  for(var i=0;i<ENDPOINTS.length;i++){
+    try{
+      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
+        method:'POST',
+        headers:LLU_HEADERS,
+        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+      });
+      var d=await r.json();
+      if(d.status===0&&d.data&&d.data.authTicket){
+        gToken=d.data.authTicket.token;
+        gEndpoint=ENDPOINTS[i];
+        // Check if redirect needed
+        if(d.data.redirect&&d.data.region){
+          gEndpoint='https://api-'+d.data.region+'.libreview.io';
+          // retry with correct region
+          var r2=await fetch(gEndpoint+'/llu/auth/login',{
+            method:'POST',headers:LLU_HEADERS,
+            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+          });
+          var d2=await r2.json();
+          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
+        }
+        return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+
+async function lluConnections(){
+  if(!gToken) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    if(d.data&&d.data.length>0){
+      gPatientId=d.data[0].patientId;
+      return d.data[0];
+    }
+  }catch(e){}
+  return null;
+}
+
+async function lluGraph(){
+  if(!gToken||!gPatientId) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    return d.data||null;
+  }catch(e){return null;}
+}
+
+function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
+function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
+function glucoseStatus(v){
+  if(v<70) return {label:'LOW',color:'#e74c3c'};
+  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<250) return {label:'HIGH',color:'#e67e22'};
+  return {label:'VERY HIGH',color:'#e74c3c'};
+}
+
+async function getGlucose(){
+  try{
+    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
+    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
+    var graph=await lluGraph();
+    if(!graph) return null;
+    var cur=graph.connection&&graph.connection.glucoseMeasurement;
+    if(!cur) return null;
+    return {
+      value:cur.Value,
+      mmol:mmol(cur.Value),
+      trend:cur.TrendArrow,
+      timestamp:cur.Timestamp,
+      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
+    };
+  }catch(e){return null;}
+}
+
+// Intercept assistant messages about glucose
+var _origSend=send;
+
+// Enhanced send with glucose detection
+async function send(){
+  var inp=document.getElementById('ainp');
+  var text=inp.value.trim();
+  if(!text&&!attachedFile)return;
+
+  // Check for glucose commands
+  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
+  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
+
+  if(isGlucoseQ){
+    inp.value='';
+    am('u',text,false);
+    showTy();
+    var gd=await getGlucose();
+    rmTy();
+    if(gd){
+      var st=glucoseStatus(gd.value);
+      var arrow=trendArrow(gd.trend);
+      var histHtml='';
+      if(gd.history&&gd.history.length>0){
+        var vals=gd.history.map(function(p){return p.v;});
+        var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
+        vals.forEach(function(v){
+          var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
+          var h=Math.max(6,Math.round(pct*0.36)+4);
+          var c=glucoseStatus(v).color;
+          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
+        });
+        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
+      }
+      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
+      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
+      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
+      msg+=histHtml;
+      // Also add interpretation via Claude
+      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
+      try{
+        var res=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
+        });
+        var data=await res.json();
+        if(!data.error){
+          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
+          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
+          hist.push({role:'assistant',content:interp});
+        }
+      }catch(e){}
+      am('a',msg,true);
+    } else {
+      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
+    }
+    return;
+  }
+
+  // Regular assistant flow
+  if(!text&&!attachedFile)return;
+  inp.value='';
+  var userContent=[];
+  var displayHtml='';
+  if(attachedFile){
+    var f=attachedFile;
+    var isImg=f.type.startsWith('image/');
+    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
+    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
+    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
+    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
+    if(text)userContent.push({type:'text',text:text});
+    clearFile();
+  } else {
+    displayHtml=text;userContent=text;
+  }
+  am('u',displayHtml,true);
+  hist.push({role:'user',content:userContent});
+  showTy();
+  try{
+    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
+    });
+    var data=await res.json();rmTy();
+    if(data.error)throw new Error(data.error.message);
+    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    hist.push({role:'assistant',content:reply});
+    am('a',reply,false);
+  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
+}
+
+rb();
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -242,11 +437,401 @@ async function fetchS(id,loc,delay){
     var text=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
     S.r[id]=text||'(no content)';
   }catch(e){S.e[id]=e.message||'Failed';}
-  S.l[id]=false;rb();
+  S.l[id]=false;
+// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
+var LLU_EMAIL='fmchristensen@gmail.com';
+var LLU_PASS='Fercamfel1963!';
+var gToken=null,gPatientId=null;
+var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
+var gEndpoint=null;
+
+var LLU_HEADERS={
+  'Content-Type':'application/json',
+  'product':'llu.android',
+  'version':'4.7.0',
+  'Accept':'application/json'
+};
+
+async function lluLogin(){
+  for(var i=0;i<ENDPOINTS.length;i++){
+    try{
+      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
+        method:'POST',
+        headers:LLU_HEADERS,
+        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+      });
+      var d=await r.json();
+      if(d.status===0&&d.data&&d.data.authTicket){
+        gToken=d.data.authTicket.token;
+        gEndpoint=ENDPOINTS[i];
+        // Check if redirect needed
+        if(d.data.redirect&&d.data.region){
+          gEndpoint='https://api-'+d.data.region+'.libreview.io';
+          // retry with correct region
+          var r2=await fetch(gEndpoint+'/llu/auth/login',{
+            method:'POST',headers:LLU_HEADERS,
+            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+          });
+          var d2=await r2.json();
+          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
+        }
+        return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+
+async function lluConnections(){
+  if(!gToken) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    if(d.data&&d.data.length>0){
+      gPatientId=d.data[0].patientId;
+      return d.data[0];
+    }
+  }catch(e){}
+  return null;
+}
+
+async function lluGraph(){
+  if(!gToken||!gPatientId) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    return d.data||null;
+  }catch(e){return null;}
+}
+
+function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
+function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
+function glucoseStatus(v){
+  if(v<70) return {label:'LOW',color:'#e74c3c'};
+  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<250) return {label:'HIGH',color:'#e67e22'};
+  return {label:'VERY HIGH',color:'#e74c3c'};
+}
+
+async function getGlucose(){
+  try{
+    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
+    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
+    var graph=await lluGraph();
+    if(!graph) return null;
+    var cur=graph.connection&&graph.connection.glucoseMeasurement;
+    if(!cur) return null;
+    return {
+      value:cur.Value,
+      mmol:mmol(cur.Value),
+      trend:cur.TrendArrow,
+      timestamp:cur.Timestamp,
+      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
+    };
+  }catch(e){return null;}
+}
+
+// Intercept assistant messages about glucose
+var _origSend=send;
+
+// Enhanced send with glucose detection
+async function send(){
+  var inp=document.getElementById('ainp');
+  var text=inp.value.trim();
+  if(!text&&!attachedFile)return;
+
+  // Check for glucose commands
+  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
+  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
+
+  if(isGlucoseQ){
+    inp.value='';
+    am('u',text,false);
+    showTy();
+    var gd=await getGlucose();
+    rmTy();
+    if(gd){
+      var st=glucoseStatus(gd.value);
+      var arrow=trendArrow(gd.trend);
+      var histHtml='';
+      if(gd.history&&gd.history.length>0){
+        var vals=gd.history.map(function(p){return p.v;});
+        var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
+        vals.forEach(function(v){
+          var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
+          var h=Math.max(6,Math.round(pct*0.36)+4);
+          var c=glucoseStatus(v).color;
+          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
+        });
+        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
+      }
+      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
+      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
+      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
+      msg+=histHtml;
+      // Also add interpretation via Claude
+      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
+      try{
+        var res=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
+        });
+        var data=await res.json();
+        if(!data.error){
+          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
+          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
+          hist.push({role:'assistant',content:interp});
+        }
+      }catch(e){}
+      am('a',msg,true);
+    } else {
+      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
+    }
+    return;
+  }
+
+  // Regular assistant flow
+  if(!text&&!attachedFile)return;
+  inp.value='';
+  var userContent=[];
+  var displayHtml='';
+  if(attachedFile){
+    var f=attachedFile;
+    var isImg=f.type.startsWith('image/');
+    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
+    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
+    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
+    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
+    if(text)userContent.push({type:'text',text:text});
+    clearFile();
+  } else {
+    displayHtml=text;userContent=text;
+  }
+  am('u',displayHtml,true);
+  hist.push({role:'user',content:userContent});
+  showTy();
+  try{
+    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
+    });
+    var data=await res.json();rmTy();
+    if(data.error)throw new Error(data.error.message);
+    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    hist.push({role:'assistant',content:reply});
+    am('a',reply,false);
+  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
+}
+
+rb();
 }
 async function run(){
   S.r={};S.e={};S.l={};S.started=true;
-  SECS.forEach(function(s){S.l[s.id]=true;});rb();
+  SECS.forEach(function(s){S.l[s.id]=true;});
+// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
+var LLU_EMAIL='fmchristensen@gmail.com';
+var LLU_PASS='Fercamfel1963!';
+var gToken=null,gPatientId=null;
+var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
+var gEndpoint=null;
+
+var LLU_HEADERS={
+  'Content-Type':'application/json',
+  'product':'llu.android',
+  'version':'4.7.0',
+  'Accept':'application/json'
+};
+
+async function lluLogin(){
+  for(var i=0;i<ENDPOINTS.length;i++){
+    try{
+      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
+        method:'POST',
+        headers:LLU_HEADERS,
+        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+      });
+      var d=await r.json();
+      if(d.status===0&&d.data&&d.data.authTicket){
+        gToken=d.data.authTicket.token;
+        gEndpoint=ENDPOINTS[i];
+        // Check if redirect needed
+        if(d.data.redirect&&d.data.region){
+          gEndpoint='https://api-'+d.data.region+'.libreview.io';
+          // retry with correct region
+          var r2=await fetch(gEndpoint+'/llu/auth/login',{
+            method:'POST',headers:LLU_HEADERS,
+            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+          });
+          var d2=await r2.json();
+          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
+        }
+        return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+
+async function lluConnections(){
+  if(!gToken) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    if(d.data&&d.data.length>0){
+      gPatientId=d.data[0].patientId;
+      return d.data[0];
+    }
+  }catch(e){}
+  return null;
+}
+
+async function lluGraph(){
+  if(!gToken||!gPatientId) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    return d.data||null;
+  }catch(e){return null;}
+}
+
+function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
+function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
+function glucoseStatus(v){
+  if(v<70) return {label:'LOW',color:'#e74c3c'};
+  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<250) return {label:'HIGH',color:'#e67e22'};
+  return {label:'VERY HIGH',color:'#e74c3c'};
+}
+
+async function getGlucose(){
+  try{
+    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
+    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
+    var graph=await lluGraph();
+    if(!graph) return null;
+    var cur=graph.connection&&graph.connection.glucoseMeasurement;
+    if(!cur) return null;
+    return {
+      value:cur.Value,
+      mmol:mmol(cur.Value),
+      trend:cur.TrendArrow,
+      timestamp:cur.Timestamp,
+      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
+    };
+  }catch(e){return null;}
+}
+
+// Intercept assistant messages about glucose
+var _origSend=send;
+
+// Enhanced send with glucose detection
+async function send(){
+  var inp=document.getElementById('ainp');
+  var text=inp.value.trim();
+  if(!text&&!attachedFile)return;
+
+  // Check for glucose commands
+  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
+  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
+
+  if(isGlucoseQ){
+    inp.value='';
+    am('u',text,false);
+    showTy();
+    var gd=await getGlucose();
+    rmTy();
+    if(gd){
+      var st=glucoseStatus(gd.value);
+      var arrow=trendArrow(gd.trend);
+      var histHtml='';
+      if(gd.history&&gd.history.length>0){
+        var vals=gd.history.map(function(p){return p.v;});
+        var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
+        vals.forEach(function(v){
+          var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
+          var h=Math.max(6,Math.round(pct*0.36)+4);
+          var c=glucoseStatus(v).color;
+          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
+        });
+        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
+      }
+      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
+      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
+      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
+      msg+=histHtml;
+      // Also add interpretation via Claude
+      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
+      try{
+        var res=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
+        });
+        var data=await res.json();
+        if(!data.error){
+          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
+          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
+          hist.push({role:'assistant',content:interp});
+        }
+      }catch(e){}
+      am('a',msg,true);
+    } else {
+      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
+    }
+    return;
+  }
+
+  // Regular assistant flow
+  if(!text&&!attachedFile)return;
+  inp.value='';
+  var userContent=[];
+  var displayHtml='';
+  if(attachedFile){
+    var f=attachedFile;
+    var isImg=f.type.startsWith('image/');
+    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
+    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
+    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
+    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
+    if(text)userContent.push({type:'text',text:text});
+    clearFile();
+  } else {
+    displayHtml=text;userContent=text;
+  }
+  am('u',displayHtml,true);
+  hist.push({role:'user',content:userContent});
+  showTy();
+  try{
+    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
+    });
+    var data=await res.json();rmTy();
+    if(data.error)throw new Error(data.error.message);
+    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    hist.push({role:'assistant',content:reply});
+    am('a',reply,false);
+  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
+}
+
+rb();
   var loc=S.loc;
   if(!loc){try{await new Promise(function(res){navigator.geolocation.getCurrentPosition(function(p){loc='lat '+p.coords.latitude.toFixed(2)+', lon '+p.coords.longitude.toFixed(2);S.loc=loc;res();},res,{timeout:4000});});}catch(e){}}
   // Stagger: 0, 2000, 4000, 6000ms
@@ -286,57 +871,7 @@ function showTy(){
 }
 function rmTy(){var t=document.getElementById('ty');if(t)t.remove();}
 
-async function send(){
-  var inp=document.getElementById('ainp');
-  var text=inp.value.trim();
-  if(!text&&!attachedFile)return;
-  inp.value='';
 
-  // Build user message content
-  var userContent=[];
-  var displayHtml='';
-
-  if(attachedFile){
-    var f=attachedFile;
-    var isImg=f.type.startsWith('image/');
-    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
-    // Read file
-    var fileData=await new Promise(function(res){
-      var r=new FileReader();
-      r.onload=function(e){res(e.target.result);};
-      if(isImg) r.readAsDataURL(f); else r.readAsText(f);
-    });
-    if(isImg){
-      var b64=fileData.split(',')[1];
-      userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});
-    } else {
-      userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});
-    }
-    if(text) userContent.push({type:'text',text:text});
-    clearFile();
-  } else {
-    displayHtml=text;
-    userContent=text;
-  }
-
-  am('u',displayHtml,true);
-  hist.push({role:'user',content:userContent});
-  showTy();
-
-  try{
-    var sys='You are a smart personal assistant in the user Daily Brief app. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. For live Google account data, tell them to ask at claude.ai where accounts are fully connected. Analyze any files or images shared. Be concise and direct.';
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
-    });
-    var data=await res.json();rmTy();
-    if(data.error) throw new Error(data.error.message);
-    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
-    hist.push({role:'assistant',content:reply});
-    am('a',reply,false);
-  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
-}
 
 // ── VOICE INPUT ──
 var recog=null;var isRec=false;
@@ -358,6 +893,201 @@ function toggleVoice(){
   if(!recog){alert('Voice not supported in this browser.');return;}
   if(isRec){recog.stop();isRec=false;document.getElementById('micBtn').classList.remove('rec');document.getElementById('micBtn').innerHTML='&#127908;';}
   else{recog.start();isRec=true;document.getElementById('micBtn').classList.add('rec');document.getElementById('micBtn').innerHTML='&#128308;';}
+}
+
+
+// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
+var LLU_EMAIL='fmchristensen@gmail.com';
+var LLU_PASS='Fercamfel1963!';
+var gToken=null,gPatientId=null;
+var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
+var gEndpoint=null;
+
+var LLU_HEADERS={
+  'Content-Type':'application/json',
+  'product':'llu.android',
+  'version':'4.7.0',
+  'Accept':'application/json'
+};
+
+async function lluLogin(){
+  for(var i=0;i<ENDPOINTS.length;i++){
+    try{
+      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
+        method:'POST',
+        headers:LLU_HEADERS,
+        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+      });
+      var d=await r.json();
+      if(d.status===0&&d.data&&d.data.authTicket){
+        gToken=d.data.authTicket.token;
+        gEndpoint=ENDPOINTS[i];
+        // Check if redirect needed
+        if(d.data.redirect&&d.data.region){
+          gEndpoint='https://api-'+d.data.region+'.libreview.io';
+          // retry with correct region
+          var r2=await fetch(gEndpoint+'/llu/auth/login',{
+            method:'POST',headers:LLU_HEADERS,
+            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
+          });
+          var d2=await r2.json();
+          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
+        }
+        return true;
+      }
+    }catch(e){}
+  }
+  return false;
+}
+
+async function lluConnections(){
+  if(!gToken) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    if(d.data&&d.data.length>0){
+      gPatientId=d.data[0].patientId;
+      return d.data[0];
+    }
+  }catch(e){}
+  return null;
+}
+
+async function lluGraph(){
+  if(!gToken||!gPatientId) return null;
+  try{
+    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
+      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
+    });
+    var d=await r.json();
+    return d.data||null;
+  }catch(e){return null;}
+}
+
+function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
+function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
+function glucoseStatus(v){
+  if(v<70) return {label:'LOW',color:'#e74c3c'};
+  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
+  if(v<250) return {label:'HIGH',color:'#e67e22'};
+  return {label:'VERY HIGH',color:'#e74c3c'};
+}
+
+async function getGlucose(){
+  try{
+    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
+    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
+    var graph=await lluGraph();
+    if(!graph) return null;
+    var cur=graph.connection&&graph.connection.glucoseMeasurement;
+    if(!cur) return null;
+    return {
+      value:cur.Value,
+      mmol:mmol(cur.Value),
+      trend:cur.TrendArrow,
+      timestamp:cur.Timestamp,
+      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
+    };
+  }catch(e){return null;}
+}
+
+// Intercept assistant messages about glucose
+var _origSend=send;
+
+// Enhanced send with glucose detection
+async function send(){
+  var inp=document.getElementById('ainp');
+  var text=inp.value.trim();
+  if(!text&&!attachedFile)return;
+
+  // Check for glucose commands
+  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
+  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
+
+  if(isGlucoseQ){
+    inp.value='';
+    am('u',text,false);
+    showTy();
+    var gd=await getGlucose();
+    rmTy();
+    if(gd){
+      var st=glucoseStatus(gd.value);
+      var arrow=trendArrow(gd.trend);
+      var histHtml='';
+      if(gd.history&&gd.history.length>0){
+        var vals=gd.history.map(function(p){return p.v;});
+        var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
+        vals.forEach(function(v){
+          var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
+          var h=Math.max(6,Math.round(pct*0.36)+4);
+          var c=glucoseStatus(v).color;
+          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
+        });
+        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
+      }
+      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
+      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
+      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
+      msg+=histHtml;
+      // Also add interpretation via Claude
+      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
+      try{
+        var res=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
+        });
+        var data=await res.json();
+        if(!data.error){
+          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
+          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
+          hist.push({role:'assistant',content:interp});
+        }
+      }catch(e){}
+      am('a',msg,true);
+    } else {
+      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
+    }
+    return;
+  }
+
+  // Regular assistant flow
+  if(!text&&!attachedFile)return;
+  inp.value='';
+  var userContent=[];
+  var displayHtml='';
+  if(attachedFile){
+    var f=attachedFile;
+    var isImg=f.type.startsWith('image/');
+    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
+    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
+    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
+    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
+    if(text)userContent.push({type:'text',text:text});
+    clearFile();
+  } else {
+    displayHtml=text;userContent=text;
+  }
+  am('u',displayHtml,true);
+  hist.push({role:'user',content:userContent});
+  showTy();
+  try{
+    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
+    });
+    var data=await res.json();rmTy();
+    if(data.error)throw new Error(data.error.message);
+    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    hist.push({role:'assistant',content:reply});
+    am('a',reply,false);
+  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
 }
 
 rb();
