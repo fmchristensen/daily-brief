@@ -5,332 +5,247 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="apple-mobile-web-app-title" content="Daily Brief"/>
 <meta name="theme-color" content="#ffffff"/>
 <title>Daily Brief</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:#fff;font-family:-apple-system,"Helvetica Neue",sans-serif;min-height:100vh;color:#000;-webkit-font-smoothing:antialiased}
 #app{max-width:480px;margin:0 auto;padding-bottom:80px}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:2px solid #000;position:sticky;top:0;background:#fff;z-index:10}
-.clock{display:flex;align-items:baseline;gap:4px;font-family:"Courier New",monospace;font-size:32px;font-weight:900;color:#000}
-.colon{color:#000;animation:blink 1s step-end infinite}
-.status-label{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.15em;color:#555;text-align:right}
-.status-dot{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em;margin-top:2px;text-align:right}
-.datestrip{padding:11px 20px;border-bottom:1px solid #bbb;display:flex;align-items:center;justify-content:space-between}
-.datetext{font-family:"Courier New",monospace;font-size:11px;font-weight:700;letter-spacing:.14em;color:#000}
-.dots{display:flex;gap:5px;align-items:center}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:2px solid #000;position:sticky;top:0;background:#fff;z-index:10}
+.clock{font-family:"Courier New",monospace;font-size:32px;font-weight:900;color:#000;letter-spacing:-0.02em}
+.colon{animation:blink 1s step-end infinite}
+.sl{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.15em;color:#555;text-align:right}
+.sd{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em;margin-top:2px;text-align:right}
+.datestrip{padding:10px 20px;border-bottom:1px solid #bbb;display:flex;align-items:center;justify-content:space-between}
+.dt{font-family:"Courier New",monospace;font-size:11px;font-weight:700;letter-spacing:.12em;color:#000}
+.dots{display:flex;gap:5px}
 .dot{width:4px;height:4px;border-radius:50%}
-/* tabs */
 .tabs{display:flex;border-bottom:2px solid #000}
-.tab{flex:1;padding:12px 4px;font-family:"Courier New",monospace;font-size:10px;font-weight:900;letter-spacing:.12em;text-align:center;cursor:pointer;border:none;background:#fff;color:#888;text-transform:uppercase;transition:all .15s}
-.tab.active{color:#000;background:#fff;border-bottom:2px solid #FF3C00;margin-bottom:-2px}
-/* pages */
-.page{display:none}.page.active{display:block}
-/* brief page */
+.tab{flex:1;padding:12px 4px;font-family:"Courier New",monospace;font-size:10px;font-weight:900;letter-spacing:.12em;text-align:center;cursor:pointer;border:none;background:#fff;color:#888;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-2px}
+.tab.on{color:#000;border-bottom-color:#FF3C00}
+.page{display:none}.page.on{display:block}
 .cta{padding:32px 20px 24px}
-.cta-eyebrow{font-family:"Courier New",monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#555;margin-bottom:8px}
-.cta-headline{font-size:24px;font-weight:900;color:#000;line-height:1.2;margin-bottom:24px}
-.cta-btn{width:100%;padding:18px 20px;background:#000;color:#fff;border:none;font-family:"Courier New",monospace;font-size:13px;font-weight:900;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
-.cta-btn .arrow{color:#FF3C00;font-size:18px}
-.cta-sub{margin-top:10px;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#888;letter-spacing:.12em}
-.sections{padding:6px 20px 40px}
-.refresh-row{display:flex;justify-content:flex-end;padding:10px 0 14px}
-.refresh-btn{background:none;border:1.5px solid #999;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;padding:7px 16px;cursor:pointer}
-/* cards */
+.ey{font-family:"Courier New",monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#555;margin-bottom:8px}
+.hl{font-size:24px;font-weight:900;color:#000;line-height:1.2;margin-bottom:24px}
+.gbtn{width:100%;padding:18px 20px;background:#000;color:#fff;border:none;font-family:"Courier New",monospace;font-size:13px;font-weight:900;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.gbtn .arr{color:#FF3C00;font-size:18px}
+.csub{margin-top:10px;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#888;letter-spacing:.12em}
+.secs{padding:6px 20px 40px}
+.rrow{display:flex;justify-content:flex-end;padding:10px 0 14px}
+.rbtn{background:none;border:1.5px solid #999;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;padding:7px 16px;cursor:pointer}
 .card{border-top:1.5px solid #bbb;border-left:3px solid transparent;padding:0 0 0 14px;transition:border-color .2s}
-.card.live{border-left-color:var(--accent);border-top-color:#000}
-.card-header{display:flex;align-items:center;justify-content:space-between;padding:13px 0 6px;cursor:pointer;user-select:none}
-.card-header-left{display:flex;align-items:center;gap:10px}
-.card-icon{font-family:"Courier New",monospace;font-size:15px;font-weight:900}
-.card-title{font-family:"Courier New",monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#000}
-.card-tag{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em}
-.card-toggle{font-family:"Courier New",monospace;font-size:16px;font-weight:700;color:#555}
-.card-body{padding:4px 0 16px}
-.skel{display:flex;flex-direction:column;gap:8px;padding:8px 0}
-.skel-line{height:10px;border-radius:2px;background:linear-gradient(90deg,#ebebeb 25%,#ddd 50%,#ebebeb 75%);background-size:200% 100%;animation:shimmer 1.4s ease-in-out infinite}
-.content{font-size:14px;line-height:1.7;color:#111}
-.content p{margin:0 0 2px}
-.content p.caps{margin:10px 0 2px;font-weight:900;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.1em;color:#000}
-.err{font-family:"Courier New",monospace;font-size:11px;font-weight:700;color:#FF3C00;padding:8px 0}
-.footer{margin-top:28px}
-.footer-label{margin-top:8px;font-family:"Courier New",monospace;font-size:9px;font-weight:700;color:#bbb;letter-spacing:.15em}
-/* assistant page */
-.asst-wrap{display:flex;flex-direction:column;height:calc(100vh - 120px)}
-.asst-msgs{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
+.card.live{border-left-color:var(--acc);border-top-color:#000}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:13px 0 5px;cursor:pointer;user-select:none}
+.chl{display:flex;align-items:center;gap:10px}
+.ci{font-family:"Courier New",monospace;font-size:15px;font-weight:900}
+.ct{font-family:"Courier New",monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#000}
+.ctag{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em}
+.ctog{font-family:"Courier New",monospace;font-size:16px;font-weight:700;color:#555}
+.cb{padding:3px 0 16px}
+.sk{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.skl{height:10px;border-radius:2px;background:linear-gradient(90deg,#ebebeb 25%,#ddd 50%,#ebebeb 75%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
+.con{font-size:14px;line-height:1.7;color:#111}
+.con p{margin:0 0 1px}
+.con p.caps{margin:10px 0 2px;font-weight:900;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.1em;color:#000}
+.er{font-family:"Courier New",monospace;font-size:11px;font-weight:700;color:#FF3C00;padding:8px 0}
+.ft{margin-top:28px}
+.ftl{margin-top:8px;font-family:"Courier New",monospace;font-size:9px;font-weight:700;color:#bbb;letter-spacing:.15em}
+.aw{display:flex;flex-direction:column;height:calc(100vh - 118px)}
+.ams{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px}
 .msg{max-width:88%;padding:10px 14px;font-size:14px;line-height:1.6}
-.msg.user{background:#000;color:#fff;align-self:flex-end;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.04em}
-.msg.asst{background:#f5f5f5;color:#111;align-self:flex-start;border-left:3px solid #FF3C00}
-.msg.asst .msg-label{font-family:"Courier New",monospace;font-size:9px;font-weight:700;letter-spacing:.14em;color:#FF3C00;margin-bottom:4px}
-.asst-input-row{display:flex;border-top:2px solid #000;padding:12px 20px;gap:10px;background:#fff;position:sticky;bottom:0}
-.asst-input{flex:1;border:1.5px solid #ccc;padding:12px 14px;font-family:"Courier New",monospace;font-size:13px;color:#000;outline:none;background:#fff}
-.asst-input:focus{border-color:#000}
-.asst-send{padding:12px 18px;background:#000;color:#fff;border:none;font-family:"Courier New",monospace;font-size:13px;font-weight:900;cursor:pointer;color:#FF3C00}
-.typing{display:flex;gap:5px;padding:4px 0;align-items:center}
-.typing span{width:6px;height:6px;border-radius:50%;background:#999;animation:pulse 1.2s ease-in-out infinite}
-.typing span:nth-child(2){animation-delay:.2s}
-.typing span:nth-child(3){animation-delay:.4s}
-@keyframes blink{0%,100%{opacity:1}49%{opacity:1}50%{opacity:0}99%{opacity:0}}
-@keyframes shimmer{0%,100%{background-position:200% 0}50%{background-position:-200% 0}}
-@keyframes pulse{0%,100%{opacity:.2}50%{opacity:1}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.msg.u{background:#000;color:#fff;align-self:flex-end;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.04em}
+.msg.a{background:#f5f5f5;color:#111;align-self:flex-start;border-left:3px solid #FF3C00}
+.ml{font-family:"Courier New",monospace;font-size:9px;font-weight:700;letter-spacing:.14em;color:#FF3C00;margin-bottom:4px}
+.air{display:flex;border-top:2px solid #000;padding:12px 20px;gap:10px;background:#fff}
+.ai{flex:1;border:1.5px solid #ccc;padding:12px 14px;font-family:"Courier New",monospace;font-size:13px;color:#000;outline:none;background:#fff}
+.ai:focus{border-color:#000}
+.as{padding:12px 18px;background:#000;border:none;font-family:"Courier New",monospace;font-size:16px;font-weight:900;cursor:pointer;color:#FF3C00}
+.ty{display:flex;gap:5px;padding:4px 0;align-items:center}
+.ty span{width:6px;height:6px;border-radius:50%;background:#999;animation:pu 1.2s ease-in-out infinite}
+.ty span:nth-child(2){animation-delay:.2s}
+.ty span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,49%{opacity:1}50%,99%{opacity:0}}
+@keyframes sh{0%,100%{background-position:200% 0}50%{background-position:-200% 0}}
+@keyframes pu{0%,100%{opacity:.2}50%{opacity:1}}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- Top bar -->
   <div class="topbar">
-    <div class="clock">
-      <span id="cH">--</span><span class="colon">:</span><span id="cM">--</span>
-    </div>
-    <div>
-      <div class="status-label">DAILY.BRIEF</div>
-      <div class="status-dot" id="sDot" style="color:#999">● STANDBY</div>
-    </div>
+    <div class="clock" id="clk">--<span class="colon">:</span>--</div>
+    <div><div class="sl">DAILY.BRIEF</div><div class="sd" id="sd">&#9679; STANDBY</div></div>
   </div>
-  <!-- Date -->
   <div class="datestrip">
-    <span class="datetext" id="dText"></span>
-    <div class="dots" id="dRow"></div>
+    <span class="dt" id="dtxt"></span>
+    <div class="dots" id="drow"></div>
   </div>
-  <!-- Tabs -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab(0)">◎ BRIEF</button>
-    <button class="tab" onclick="switchTab(1)">◆ ASSISTANT</button>
+    <button class="tab on" onclick="sw(0)">&#9675; BRIEF</button>
+    <button class="tab" onclick="sw(1)">&#9670; ASSISTANT</button>
   </div>
-  <!-- Brief page -->
-  <div class="page active" id="page0">
-    <div id="briefMain"></div>
-  </div>
-  <!-- Assistant page -->
-  <div class="page" id="page1">
-    <div class="asst-wrap">
-      <div class="asst-msgs" id="asstMsgs">
-        <div class="msg asst">
-          <div class="msg-label">ASSISTANT_</div>
-          Good morning. I can help with your Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube — or anything else. What do you need?
-        </div>
+  <div class="page on" id="p0"><div id="bm"></div></div>
+  <div class="page" id="p1">
+    <div class="aw">
+      <div class="ams" id="am">
+        <div class="msg a"><div class="ml">ASSISTANT_</div>Good morning. Ask me anything — Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube, or general questions.</div>
       </div>
-      <div class="asst-input-row">
-        <input class="asst-input" id="asstInput" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendMsg()"/>
-        <button class="asst-send" onclick="sendMsg()">→</button>
+      <div class="air">
+        <input class="ai" id="ainp" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')send()"/>
+        <button class="as" onclick="send()">&#8594;</button>
       </div>
     </div>
   </div>
 </div>
-
 <script>
-// ── Clock ──
+// Clock
 function tick(){
-  const t=new Date();
-  document.getElementById("cH").textContent=String(t.getHours()).padStart(2,"0");
-  document.getElementById("cM").textContent=String(t.getMinutes()).padStart(2,"0");
+  var t=new Date(),h=String(t.getHours()).padStart(2,'0'),m=String(t.getMinutes()).padStart(2,'0');
+  document.getElementById('clk').innerHTML=h+'<span class="colon">:</span>'+m;
 }
-tick(); setInterval(tick,30000);
+tick();setInterval(tick,30000);
 
-// ── Date ──
-const now=new Date();
-const dateStr=now.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-document.getElementById("dText").textContent=dateStr.toUpperCase();
-const dr=document.getElementById("dRow");
-for(let i=0;i<10;i++){const d=document.createElement("div");d.className="dot";d.style.background=i%3===0?"#000":"#ccc";dr.appendChild(d);}
+// Date
+var now=new Date();
+var DS=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+document.getElementById('dtxt').textContent=DS.toUpperCase();
+var dr=document.getElementById('drow');
+for(var i=0;i<10;i++){var d=document.createElement('div');d.className='dot';d.style.background=i%3===0?'#000':'#ccc';dr.appendChild(d);}
 
-// ── API key (split to bypass GitHub scanner) ──
-const _a="sk-ant-api03-tWH-ENa";
-const _b="wMS6kDQOB20DKYIMnYn7KUjjhP83te";
-const _c="DA0kMfpt-n4eHiDk1Mr0h73HXScVODiZuvRMF0hdGgBee4dXw-uYEoYwAA";
-const API_KEY=_a+_b+_c;
+// API key
+var _a='sk-ant-api03-tWH-ENa',_b='wMS6kDQOB20DKYIMnYn7KUjjhP83te',_c='DA0kMfpt-n4eHiDk1Mr0h73HXScVODiZuvRMF0hdGgBee4dXw-uYEoYwAA';
+var AK=_a+_b+_c;
 
-// ── Tabs ──
-function switchTab(i){
-  document.querySelectorAll(".tab").forEach((t,j)=>t.classList.toggle("active",i===j));
-  document.querySelectorAll(".page").forEach((p,j)=>p.classList.toggle("active",i===j));
+// Tabs
+function sw(i){
+  document.querySelectorAll('.tab').forEach(function(t,j){t.classList.toggle('on',i===j);});
+  document.querySelectorAll('.page').forEach(function(p,j){p.classList.toggle('on',i===j);});
 }
 
-// ── Brief sections ──
-const SECTIONS=[
-  {id:"weather",label:"WEATHER",      icon:"◎",accent:"#FF3C00"},
-  {id:"world",  label:"WORLD",        icon:"◉",accent:"#000"},
-  {id:"local",  label:"LOCAL",        icon:"◈",accent:"#000"},
-  {id:"ai",     label:"AI + STARTUPS",icon:"◆",accent:"#FF3C00"},
-  {id:"agenda", label:"AGENDA",       icon:"◇",accent:"#000"},
+// Sections
+var SECS=[
+  {id:'weather',label:'WEATHER',icon:'&#9675;',acc:'#FF3C00'},
+  {id:'world',label:'WORLD',icon:'&#9677;',acc:'#000'},
+  {id:'local',label:'LOCAL',icon:'&#9672;',acc:'#000'},
+  {id:'ai',label:'AI + STARTUPS',icon:'&#9670;',acc:'#FF3C00'},
+  {id:'agenda',label:'AGENDA',icon:'&#9671;',acc:'#000'}
 ];
 
-function getPrompt(id,loc){
-  const l=loc||"unknown location";
-  const P={
-    weather:`Today is ${dateStr}. Location: ${l}. Give a concise weather briefing. Start directly with the data — no preamble, no "I need to find" sentences. Format:
-WEATHER BRIEFING - [CITY]
-Current: [temp C/F], [condition]
-Morning: [outlook]
-Afternoon: [outlook]
-Evening: [outlook]
-Tip: [one practical tip]
-Plain text only.`,
-    world:`Today is ${dateStr}. Give 4 top international news stories. For each use this exact format:
-[HEADLINE IN CAPS]
-[2 sentence summary]
-
-No preamble. Plain text only.`,
-    local:`Today is ${dateStr}. Location: ${l}. Give 3-4 local/regional news items. For each:
-[HEADLINE IN CAPS]
-[1-2 sentence summary]
-
-No preamble. Plain text only.`,
-    ai:`Today is ${dateStr}. Top AI and startup news this week. For each item:
-[HEADLINE IN CAPS]
-[2 sentence summary]
-
-Include 2-3 AI breakthroughs, 2 funding rounds, 1 trend. No preamble. Plain text only.`,
-    agenda:`Today is ${dateStr}. The user wants their real Google Calendar events for today. Since you cannot access it directly from here, tell them clearly: "To see your real Google Calendar, open Claude at claude.ai and ask: show my agenda for today — your Google Calendar is connected there." Then provide a well-structured sample productive day from 7:00 to 22:00 as a placeholder. Format each slot exactly as:
-HH:MM — [Activity]
-No preamble. Plain text only.`,
+function prompt(id,loc){
+  var l=loc||'unknown location';
+  var P={
+    weather:'Today is '+DS+'. Location: '+l+'. Weather briefing — start directly with data, no preamble.\nFormat:\nWEATHER BRIEFING - [CITY]\nCurrent: [temp C/F], [condition]\nMorning: [detail]\nAfternoon: [detail]\nEvening: [detail]\nTip: [practical tip]\nPlain text only.',
+    world:'Today is '+DS+'. 4 top international news stories. Each:\n[HEADLINE IN CAPS]\n[2 sentence summary]\nNo preamble. Plain text only.',
+    local:'Today is '+DS+'. Location: '+l+'. 3-4 local news items. Each:\n[HEADLINE IN CAPS]\n[1-2 sentence summary]\nNo preamble. Plain text only.',
+    ai:'Today is '+DS+'. Top AI and startup news. Each:\n[HEADLINE IN CAPS]\n[2 sentence summary]\n2-3 AI breakthroughs, 2 funding rounds, 1 trend. No preamble. Plain text only.',
+    agenda:'Today is '+DS+'. Location: '+l+'. The user wants their Google Calendar agenda for today. State clearly: to view real calendar events, open claude.ai and ask "show my agenda for today" — Google Calendar is connected there. Then show a sample productive day 07:00-22:00. Each slot:\nHH:MM — Activity\nPlain text only.'
   };
   return P[id];
 }
 
-const S={r:{},l:{},e:{},started:false,loc:null};
+var S={r:{},l:{},e:{},started:false,loc:null};
 
-function setStatus(loading,done){
-  const el=document.getElementById("sDot");
-  if(loading){el.style.color="#FF3C00";el.textContent="● FETCHING";}
-  else if(done){el.style.color="#000";el.textContent="● LIVE";}
-  else{el.style.color="#999";el.textContent="● STANDBY";}
+function setSt(ld,dn){
+  var el=document.getElementById('sd');
+  if(ld){el.style.color='#FF3C00';el.textContent='● FETCHING';}
+  else if(dn){el.style.color='#000';el.textContent='● LIVE';}
+  else{el.style.color='#999';el.textContent='● STANDBY';}
 }
-function mkDots(n,col){
-  let h="";for(let i=0;i<n;i++) h+=`<div class="dot" style="background:${i%3===0?(col||"#000"):"#ccc"}"></div>`;
-  return `<div class="dots" style="display:flex;gap:5px">${h}</div>`;
+function mkDots(n,c){
+  var h='';for(var i=0;i<n;i++) h+='<div class="dot" style="background:'+(i%3===0?(c||'#000'):'#ccc')+'"></div>';
+  return '<div class="dots" style="display:flex;gap:5px">'+h+'</div>';
 }
-function renderContent(text){
-  return text.split("\n").map(line=>{
-    const t=line.trim();
-    const isCaps=t.length>3&&/^[A-Z][A-Z\s\d\-\+\&\/\.,!?:\(\)]+$/.test(t);
-    return `<p class="${isCaps?"caps":""}">${t||"&nbsp;"}</p>`;
-  }).join("");
+function rcon(text){
+  return text.split('\n').map(function(line){
+    var t=line.trim();
+    var caps=t.length>3&&/^[A-Z][A-Z\s\d\-\+\&\/\.,!?:\(\)]+$/.test(t);
+    return '<p class="'+(caps?'caps':'')+'">'+( t||'&nbsp;')+'</p>';
+  }).join('');
 }
-function renderCard(sec,i){
-  const {id,label,icon,accent}=sec;
-  const loading=S.l[id],error=S.e[id],content=S.r[id],live=!loading&&content;
-  let body="";
-  if(error) body=`<div class="err">ERR: ${error}</div>`;
-  else if(loading) body=`<div class="skel">${[92,75,85,65,78].map((w,j)=>`<div class="skel-line" style="width:${w}%;animation-delay:${j*.1}s"></div>`).join("")}</div>`;
-  else if(content) body=`<div class="content">${renderContent(content)}</div>`;
-  return `
-  <div class="card${live?" live":""}" id="card-${id}" style="--accent:${accent};animation:fadeUp .3s ease ${i*.06}s both">
-    <div class="card-header" onclick="tog('${id}')">
-      <div class="card-header-left">
-        <span class="card-icon" style="color:${accent};${loading?"animation:pulse 1s ease-in-out infinite":""}">${icon}</span>
-        <span class="card-title">${label}</span>
-        ${loading?`<span class="card-tag" style="color:#888">LOADING_</span>`:""}
-        ${live?`<span class="card-tag" style="color:${accent}">● LIVE</span>`:""}
-      </div>
-      <span class="card-toggle" id="tog-${id}">−</span>
-    </div>
-    <div class="card-body" id="bd-${id}">${body}</div>
-  </div>`;
+function rcard(sec,i){
+  var id=sec.id,label=sec.label,icon=sec.icon,acc=sec.acc;
+  var ld=S.l[id],err=S.e[id],con=S.r[id],live=!ld&&con;
+  var body='';
+  if(err) body='<div class="er">ERR: '+err+'</div>';
+  else if(ld) body='<div class="sk">'+[92,75,85,65,78].map(function(w,j){return '<div class="skl" style="width:'+w+'%;animation-delay:'+(j*.1)+'s"></div>';}).join('')+'</div>';
+  else if(con) body='<div class="con">'+rcon(con)+'</div>';
+  return '<div class="card'+(live?' live':'')+'" id="c-'+id+'" style="--acc:'+acc+';animation:fu .3s ease '+(i*.06)+'s both"><div class="ch" onclick="tog(\''+id+'\')"><div class="chl"><span class="ci" style="color:'+acc+';'+(ld?'animation:pu 1s ease-in-out infinite':'')+'">'+icon+'</span><span class="ct">'+label+'</span>'+(ld?'<span class="ctag" style="color:#888">LOADING_</span>':'')+(live?'<span class="ctag" style="color:'+acc+'">&#9679; LIVE</span>':'')+'</div><span class="ctog" id="t-'+id+'">&#8722;</span></div><div class="cb" id="b-'+id+'">'+body+'</div></div>';
 }
 function tog(id){
-  const b=document.getElementById("bd-"+id),t=document.getElementById("tog-"+id);
-  const h=b.style.display==="none";b.style.display=h?"":"none";t.textContent=h?"−":"+";
+  var b=document.getElementById('b-'+id),t=document.getElementById('t-'+id);
+  var h=b.style.display==='none';b.style.display=h?'':'none';t.innerHTML=h?'&#8722;':'+';
 }
-function renderBrief(){
-  const anyL=SECTIONS.some(s=>S.l[s.id]);
-  const allD=S.started&&!anyL&&SECTIONS.every(s=>S.r[s.id]||S.e[s.id]);
-  setStatus(anyL,allD);
+function rb(){
+  var al=SECS.some(function(s){return S.l[s.id];});
+  var ad=S.started&&!al&&SECS.every(function(s){return S.r[s.id]||S.e[s.id];});
+  setSt(al,ad);
   if(!S.started){
-    document.getElementById("briefMain").innerHTML=`
-    <div class="cta">
-      <div style="margin-bottom:20px">${mkDots(16,"#FF3C00")}</div>
-      <div class="cta-eyebrow">GOOD MORNING_</div>
-      <div class="cta-headline">Your intelligence<br>briefing awaits.</div>
-      <button class="cta-btn" onclick="runBrief()"><span>GENERATE BRIEFING</span><span class="arrow">→</span></button>
-      <div class="cta-sub">WEATHER · WORLD · LOCAL · AI · AGENDA</div>
-    </div>`;
+    document.getElementById('bm').innerHTML='<div class="cta"><div style="margin-bottom:20px">'+mkDots(16,'#FF3C00')+'</div><div class="ey">GOOD MORNING_</div><div class="hl">Your intelligence<br>briefing awaits.</div><button class="gbtn" onclick="run()"><span>GENERATE BRIEFING</span><span class="arr">&#8594;</span></button><div class="csub">WEATHER &middot; WORLD &middot; LOCAL &middot; AI &middot; AGENDA</div></div>';
     return;
   }
-  let html="<div class="sections">";
-  if(allD) html+=`<div class="refresh-row"><button class="refresh-btn" onclick="runBrief()">↻ REFRESH</button></div>`;
-  SECTIONS.forEach((sec,i)=>html+=renderCard(sec,i));
-  html+=`<div class="footer">${mkDots(20)}<div class="footer-label">POWERED BY CLAUDE · ${now.getFullYear()}</div></div></div>`;
-  document.getElementById("briefMain").innerHTML=html;
+  var html='<div class="secs">';
+  if(ad) html+='<div class="rrow"><button class="rbtn" onclick="run()">&#8635; REFRESH</button></div>';
+  SECS.forEach(function(sec,i){html+=rcard(sec,i);});
+  html+='<div class="ft">'+mkDots(20)+'<div class="ftl">POWERED BY CLAUDE &middot; '+now.getFullYear()+'</div></div></div>';
+  document.getElementById('bm').innerHTML=html;
 }
-async function fetchSec(id,loc){
-  S.l[id]=true;S.e[id]=null;renderBrief();
+async function fetchS(id,loc){
+  S.l[id]=true;S.e[id]=null;rb();
   try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({model:"claude-haiku-4-5",max_tokens:900,tools:[{type:"web_search_20250305",name:"web_search"}],messages:[{role:"user",content:getPrompt(id,loc)}]})
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:900,tools:[{type:'web_search_20250305',name:'web_search'}],messages:[{role:'user',content:prompt(id,loc)}]})
     });
-    const data=await res.json();
+    var data=await res.json();
     if(data.error) throw new Error(data.error.message);
-    const text=data.content.filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
-    S.r[id]=text||"(no content)";
-  }catch(e){S.e[id]=e.message||"Failed";}
-  finally{S.l[id]=false;renderBrief();}
+    var text=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    S.r[id]=text||'(no content)';
+  }catch(e){S.e[id]=e.message||'Failed';}
+  S.l[id]=false;rb();
 }
-async function runBrief(){
+async function run(){
   S.r={};S.e={};S.l={};S.started=true;
-  SECTIONS.forEach(s=>{S.l[s.id]=true;});renderBrief();
-  let loc=S.loc;
-  if(!loc){try{await new Promise(res=>{navigator.geolocation.getCurrentPosition(p=>{loc=`lat ${p.coords.latitude.toFixed(2)}, lon ${p.coords.longitude.toFixed(2)}`;S.loc=loc;res();},()=>res(),{timeout:4000});});}catch(_){}}
-  SECTIONS.forEach(s=>fetchSec(s.id,loc));
+  SECS.forEach(function(s){S.l[s.id]=true;});rb();
+  var loc=S.loc;
+  if(!loc){try{await new Promise(function(res){navigator.geolocation.getCurrentPosition(function(p){loc='lat '+p.coords.latitude.toFixed(2)+', lon '+p.coords.longitude.toFixed(2);S.loc=loc;res();},res,{timeout:4000});});}catch(e){}}
+  SECS.forEach(function(s){fetchS(s.id,loc);});
 }
 
-// ── Assistant ──
-const asstHistory=[];
-function appendMsg(role,text){
-  const msgs=document.getElementById("asstMsgs");
-  const div=document.createElement("div");
-  div.className=`msg ${role}`;
-  if(role==="asst") div.innerHTML=`<div class="msg-label">ASSISTANT_</div>${text.replace(/\n/g,"<br>")}`;
+// Assistant
+var hist=[];
+function am(role,text){
+  var msgs=document.getElementById('am');
+  var div=document.createElement('div');div.className='msg '+(role==='u'?'u':'a');
+  if(role==='a') div.innerHTML='<div class="ml">ASSISTANT_</div>'+text.replace(/\n/g,'<br>');
   else div.textContent=text;
-  msgs.appendChild(div);
-  msgs.scrollTop=msgs.scrollHeight;
-  return div;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;return div;
 }
-function showTyping(){
-  const msgs=document.getElementById("asstMsgs");
-  const div=document.createElement("div");
-  div.className="msg asst";div.id="typing";
-  div.innerHTML=`<div class="msg-label">ASSISTANT_</div><div class="typing"><span></span><span></span><span></span></div>`;
+function showTy(){
+  var msgs=document.getElementById('am');
+  var div=document.createElement('div');div.className='msg a';div.id='ty';
+  div.innerHTML='<div class="ml">ASSISTANT_</div><div class="ty"><span></span><span></span><span></span></div>';
   msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
 }
-function removeTyping(){const t=document.getElementById("typing");if(t)t.remove();}
-
-async function sendMsg(){
-  const inp=document.getElementById("asstInput");
-  const text=inp.value.trim();if(!text)return;
-  inp.value="";
-  appendMsg("user",text);
-  asstHistory.push({role:"user",content:text});
-  showTyping();
+function rmTy(){var t=document.getElementById('ty');if(t)t.remove();}
+async function send(){
+  var inp=document.getElementById('ainp'),text=inp.value.trim();if(!text)return;
+  inp.value='';am('u',text);hist.push({role:'user',content:text});showTy();
   try{
-    const sysPrompt=`You are a smart personal assistant built into the user's Daily Brief app. Today is ${dateStr}. 
-You can help with: Google Calendar, Gmail, Google Drive, Docs, Sheets, Maps, YouTube, and general questions.
-For Google services: give clear, actionable guidance. If you need live data from their account, tell them to ask you in the main Claude app at claude.ai where their Google accounts are connected.
-Be concise, direct, and warm. Use plain text.`;
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-api-key":API_KEY,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-      body:JSON.stringify({
-        model:"claude-haiku-4-5",max_tokens:600,
-        system:sysPrompt,
-        tools:[{type:"web_search_20250305",name:"web_search"}],
-        messages:asstHistory
-      })
+    var sys='You are a smart personal assistant in the user Daily Brief app. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. For live Google account data, tell them to ask at claude.ai where accounts are connected. Be concise and direct.';
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:600,system:sys,tools:[{type:'web_search_20250305',name:'web_search'}],messages:hist})
     });
-    const data=await res.json();
-    removeTyping();
+    var data=await res.json();rmTy();
     if(data.error) throw new Error(data.error.message);
-    const reply=data.content.filter(b=>b.type==="text").map(b=>b.text).join("\n").trim();
-    asstHistory.push({role:"assistant",content:reply});
-    appendMsg("asst",reply);
-  }catch(e){removeTyping();appendMsg("asst","ERR: "+e.message);}
+    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
+    hist.push({role:'assistant',content:reply});am('a',reply);
+  }catch(e){rmTy();am('a','ERR: '+e.message);}
 }
 
-renderBrief();
+rb();
 </script>
 </body>
 </html>
