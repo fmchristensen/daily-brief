@@ -10,78 +10,78 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:#fff;font-family:-apple-system,"Helvetica Neue",sans-serif;min-height:100vh;color:#000;-webkit-font-smoothing:antialiased}
-#app{max-width:480px;margin:0 auto}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:2px solid #000;position:sticky;top:0;background:#fff;z-index:10}
-.clock{font-family:"Courier New",monospace;font-size:32px;font-weight:900;color:#000;letter-spacing:-0.02em}
+#app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px;border-bottom:2px solid #000;background:#fff;flex-shrink:0}
+.clock{font-family:"Courier New",monospace;font-size:30px;font-weight:900;color:#000;letter-spacing:-0.02em}
 .colon{animation:blink 1s step-end infinite}
 .sl{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.15em;color:#555;text-align:right}
 .sd{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em;margin-top:2px;text-align:right}
-.datestrip{padding:10px 20px;border-bottom:1px solid #bbb;display:flex;align-items:center;justify-content:space-between}
+.datestrip{padding:9px 20px;border-bottom:1px solid #bbb;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .dt{font-family:"Courier New",monospace;font-size:11px;font-weight:700;letter-spacing:.12em;color:#000}
 .dots{display:flex;gap:5px}
 .dot{width:4px;height:4px;border-radius:50%}
-.tabs{display:flex;border-bottom:2px solid #000}
-.tab{flex:1;padding:12px 4px;font-family:"Courier New",monospace;font-size:10px;font-weight:900;letter-spacing:.12em;text-align:center;cursor:pointer;border:none;background:#fff;color:#888;text-transform:uppercase;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+.tabs{display:flex;border-bottom:2px solid #000;flex-shrink:0}
+.tab{flex:1;padding:11px 4px;font-family:"Courier New",monospace;font-size:10px;font-weight:900;letter-spacing:.12em;text-align:center;cursor:pointer;border:none;background:#fff;color:#888;text-transform:uppercase;border-bottom:3px solid transparent;margin-bottom:-2px}
 .tab.on{color:#000;border-bottom-color:#FF3C00}
-.page{display:none}.page.on{display:block}
+.pages{flex:1;overflow:hidden;position:relative;min-height:0}
+.page{display:none;position:absolute;inset:0;overflow-y:auto}
+.page.on{display:block}
 /* BRIEF */
-.cta{padding:32px 20px 24px}
-.ey{font-family:"Courier New",monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#555;margin-bottom:8px}
-.hl{font-size:24px;font-weight:900;color:#000;line-height:1.2;margin-bottom:24px}
-.gbtn{width:100%;padding:18px 20px;background:#000;color:#fff;border:none;font-family:"Courier New",monospace;font-size:13px;font-weight:900;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.cta{padding:28px 20px 20px}
+.ey{font-family:"Courier New",monospace;font-size:11px;font-weight:900;letter-spacing:.2em;color:#555;margin-bottom:6px}
+.hl{font-size:22px;font-weight:900;color:#000;line-height:1.2;margin-bottom:20px}
+.gbtn{width:100%;padding:16px 20px;background:#000;color:#fff;border:none;font-family:"Courier New",monospace;font-size:13px;font-weight:900;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
 .arr{color:#FF3C00;font-size:18px}
-.csub{margin-top:10px;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#888;letter-spacing:.12em}
-.secs{padding:6px 20px 60px}
-.rrow{display:flex;justify-content:flex-end;padding:10px 0 14px}
-.rbtn{background:none;border:1.5px solid #999;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;padding:7px 16px;cursor:pointer}
+.csub{margin-top:8px;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#888;letter-spacing:.12em}
+.secs{padding:4px 20px 60px}
+.rrow{display:flex;justify-content:flex-end;padding:8px 0 12px}
+.rbtn{background:none;border:1.5px solid #999;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#555;letter-spacing:.14em;padding:6px 14px;cursor:pointer}
 .card{border-top:1.5px solid #bbb;border-left:3px solid transparent;padding:0 0 0 14px;transition:border-color .2s}
 .card.live{border-left-color:var(--acc);border-top-color:#000}
-.ch{display:flex;align-items:center;justify-content:space-between;padding:13px 0 5px;cursor:pointer;user-select:none}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:11px 0 4px;cursor:pointer;user-select:none}
 .chl{display:flex;align-items:center;gap:10px}
-.ci{font-family:"Courier New",monospace;font-size:15px;font-weight:900}
+.ci{font-size:15px;font-weight:900}
 .ct{font-family:"Courier New",monospace;font-size:12px;font-weight:900;letter-spacing:.2em;color:#000}
 .ctag{font-family:"Courier New",monospace;font-size:10px;font-weight:700;letter-spacing:.1em}
 .ctog{font-family:"Courier New",monospace;font-size:16px;font-weight:700;color:#555}
-.cb{padding:3px 0 16px}
-.sk{display:flex;flex-direction:column;gap:8px;padding:6px 0}
+.cb{padding:2px 0 14px}
+.sk{display:flex;flex-direction:column;gap:7px;padding:6px 0}
 .skl{height:10px;border-radius:2px;background:linear-gradient(90deg,#ebebeb 25%,#ddd 50%,#ebebeb 75%);background-size:200% 100%;animation:sh 1.4s ease-in-out infinite}
 .con{font-size:14px;line-height:1.7;color:#111}
 .con p{margin:0 0 1px}
 .con p.caps{margin:10px 0 2px;font-weight:900;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.1em;color:#000}
-.er{font-family:"Courier New",monospace;font-size:11px;font-weight:700;color:#FF3C00;padding:8px 0;line-height:1.5}
-.ft{margin-top:28px}
-.ftl{margin-top:8px;font-family:"Courier New",monospace;font-size:9px;font-weight:700;color:#bbb;letter-spacing:.15em}
+.er{font-family:"Courier New",monospace;font-size:11px;font-weight:700;color:#FF3C00;padding:8px 0;line-height:1.6}
+.ft{margin-top:24px;padding-bottom:20px}
+.ftl{margin-top:6px;font-family:"Courier New",monospace;font-size:9px;font-weight:700;color:#bbb;letter-spacing:.15em}
 /* ASSISTANT */
-#p1{display:none;flex-direction:column;height:calc(100vh - 118px)}
+#p1{display:none;flex-direction:column}
 #p1.on{display:flex}
-.ams{flex:1;overflow-y:auto;padding:16px 20px 12px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.ams{flex:1;overflow-y:auto;padding:14px 20px 10px;display:flex;flex-direction:column;gap:10px}
 .msg{max-width:90%;padding:10px 14px;font-size:14px;line-height:1.6;word-break:break-word}
 .msg.u{background:#000;color:#fff;align-self:flex-end;font-family:"Courier New",monospace;font-size:12px;letter-spacing:.04em}
 .msg.a{background:#f5f5f5;color:#111;align-self:flex-start;border-left:3px solid #FF3C00}
 .ml{font-family:"Courier New",monospace;font-size:9px;font-weight:700;letter-spacing:.14em;color:#FF3C00;margin-bottom:4px}
-.msg.u.file{background:#222;font-size:11px;display:flex;align-items:center;gap:8px}
-.file-icon{font-size:18px}
-/* input bar */
-.air{border-top:2px solid #000;padding:10px 12px;background:#fff;display:flex;flex-direction:column;gap:8px;flex-shrink:0}
-.air-row{display:flex;gap:8px;align-items:center}
-.ai{flex:1;border:1.5px solid #ccc;padding:11px 14px;font-family:"Courier New",monospace;font-size:13px;color:#000;outline:none;background:#fff;min-width:0}
+/* INPUT BAR — fixed at bottom of assistant page */
+.air{border-top:2px solid #000;padding:10px 14px 14px;background:#fff;flex-shrink:0}
+.air-row1{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.ai{flex:1;border:1.5px solid #ccc;padding:11px 13px;font-family:"Courier New",monospace;font-size:13px;color:#000;outline:none;background:#fff;min-width:0}
 .ai:focus{border-color:#000}
-.icnbtn{width:42px;height:42px;border:1.5px solid #ccc;background:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
-.icnbtn:active,.icnbtn.rec{border-color:#FF3C00;background:#fff8f7}
-.icnbtn.send{background:#000;border-color:#000;color:#FF3C00;font-size:16px;font-weight:900}
-.attach-bar{display:flex;gap:8px;align-items:center;padding:2px 0}
+.icnbtn{width:42px;height:42px;border:1.5px solid #ccc;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s}
+.icnbtn:active{border-color:#000}
+.icnbtn.rec{border-color:#FF3C00;background:#fff8f7}
+.icnbtn.send{background:#000;border-color:#000}
+.air-row2{display:flex;gap:8px;align-items:center}
 .attach-label{font-family:"Courier New",monospace;font-size:9px;font-weight:700;letter-spacing:.12em;color:#888}
-.attach-chip{display:flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid #ddd;font-family:"Courier New",monospace;font-size:10px;color:#555;cursor:pointer}
-.attach-chip:hover{border-color:#000;color:#000}
-#fileInput{display:none}
-.preview-bar{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid #eee}
-.preview-name{font-family:"Courier New",monospace;font-size:10px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.preview-rm{background:none;border:none;font-size:14px;color:#FF3C00;cursor:pointer;font-weight:900;padding:0 4px}
+.achip{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1.5px solid #ddd;font-family:"Courier New",monospace;font-size:10px;font-weight:700;color:#555;cursor:pointer;letter-spacing:.08em}
+.achip:active{border-color:#000;color:#000}
+#fileIn{display:none}
+.prev{display:flex;align-items:center;gap:8px;padding:6px 0 2px;border-top:1px solid #eee;margin-top:6px}
+.prevn{font-family:"Courier New",monospace;font-size:10px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prevrm{background:none;border:none;font-size:14px;color:#FF3C00;cursor:pointer;font-weight:900;padding:0 4px}
 .ty{display:flex;gap:5px;padding:4px 0;align-items:center}
 .ty span{width:6px;height:6px;border-radius:50%;background:#999;animation:pu 1.2s ease-in-out infinite}
 .ty span:nth-child(2){animation-delay:.2s}
 .ty span:nth-child(3){animation-delay:.4s}
-.rec-indicator{font-family:"Courier New",monospace;font-size:10px;color:#FF3C00;font-weight:700;letter-spacing:.1em;animation:blink .7s step-end infinite}
 @keyframes blink{0%,49%{opacity:1}50%,99%{opacity:0}}
 @keyframes sh{0%,100%{background-position:200% 0}50%{background-position:-200% 0}}
 @keyframes pu{0%,100%{opacity:.2}50%{opacity:1}}
@@ -92,7 +92,7 @@ html,body{background:#fff;font-family:-apple-system,"Helvetica Neue",sans-serif;
 <div id="app">
   <div class="topbar">
     <div class="clock" id="clk">--<span class="colon">:</span>--</div>
-    <div><div class="sl">DAILY.BRIEF</div><div class="sd" id="sd">&#9679; STANDBY</div></div>
+    <div><div class="sl">DAILY.BRIEF</div><div class="sd" id="sd">&#8226; STANDBY</div></div>
   </div>
   <div class="datestrip">
     <span class="dt" id="dtxt"></span>
@@ -102,39 +102,54 @@ html,body{background:#fff;font-family:-apple-system,"Helvetica Neue",sans-serif;
     <button class="tab on" id="tab0" onclick="sw(0)">&#9675; BRIEF</button>
     <button class="tab" id="tab1" onclick="sw(1)">&#9670; ASSISTANT</button>
   </div>
-
-  <!-- BRIEF PAGE -->
-  <div class="page on" id="p0"><div id="bm"></div></div>
-
-  <!-- ASSISTANT PAGE -->
-  <div id="p1">
-    <div class="ams" id="am">
-      <div class="msg a">
-        <div class="ml">ASSISTANT_</div>
-        Good morning. I can help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube &mdash; or anything else. Type, speak, or attach a file.
+  <div class="pages">
+    <!-- BRIEF -->
+    <div class="page on" id="p0"><div id="bm"></div></div>
+    <!-- ASSISTANT -->
+    <div class="page" id="p1">
+      <div class="ams" id="am">
+        <div class="msg a">
+          <div class="ml">ASSISTANT_</div>
+          Good morning. Ask me anything — type, speak, or attach a file.<br><br>
+          <strong>I can help with:</strong> General questions &amp; web search, File &amp; image analysis, FreeStyle Libre glucose readings, Google services guidance.<br><br>
+          <span style="font-family:'Courier New',monospace;font-size:11px;color:#888">For live Gmail, Calendar &amp; Drive data: open claude.ai where your Google account is fully connected.</span>
+        </div>
       </div>
-    </div>
-    <div class="air">
-      <div class="air-row">
-        <input class="ai" id="ainp" placeholder="Ask anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"/>
-        <button class="icnbtn" id="micBtn" onclick="toggleVoice()" title="Voice input">&#127908;</button>
-        <button class="icnbtn send" onclick="send()" title="Send">&#8594;</button>
-      </div>
-      <div class="attach-bar">
-        <span class="attach-label">ATTACH:</span>
-        <label class="attach-chip" for="fileInput">&#128206; FILE</label>
-        <label class="attach-chip" for="fileInput">&#128247; IMAGE</label>
-        <input type="file" id="fileInput" accept="*/*" onchange="onFile(event)"/>
-      </div>
-      <div class="preview-bar" id="prevBar" style="display:none">
-        <span style="font-size:16px" id="prevIcon">&#128206;</span>
-        <span class="preview-name" id="prevName"></span>
-        <button class="preview-rm" onclick="clearFile()">&#10005;</button>
+      <div class="air">
+        <div class="air-row1">
+          <input class="ai" id="ainp" placeholder="Ask anything..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send();}"/>
+          <button class="icnbtn rec" id="micBtn" onclick="toggleVoice()" title="Voice input">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="2" width="6" height="11" rx="3"/>
+              <path d="M5 10a7 7 0 0 0 14 0"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+              <line x1="9" y1="21" x2="15" y2="21"/>
+            </svg>
+          </button>
+          <button class="icnbtn send" onclick="send()" title="Send">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF3C00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+        <div class="air-row2">
+          <span class="attach-label">ATTACH:</span>
+          <label class="achip" for="fileIn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            FILE / IMAGE
+          </label>
+          <input type="file" id="fileIn" accept="*/*" onchange="onFile(event)"/>
+        </div>
+        <div class="prev" id="prevBar" style="display:none">
+          <span id="prevIcon" style="font-size:15px">&#128206;</span>
+          <span class="prevn" id="prevName"></span>
+          <button class="prevrm" onclick="clearFile()">&#10005;</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
-
 <script>
 // Clock
 function tick(){
@@ -162,21 +177,21 @@ function sw(i){
   document.getElementById('p1').classList.toggle('on',i===1);
 }
 
-// Brief sections (NO AGENDA)
+// Brief sections
 var SECS=[
-  {id:'weather',label:'WEATHER',icon:'&#9675;',acc:'#FF3C00'},
-  {id:'world',label:'WORLD',icon:'&#9677;',acc:'#000'},
-  {id:'local',label:'LOCAL',icon:'&#9672;',acc:'#000'},
-  {id:'ai',label:'AI + STARTUPS',icon:'&#9670;',acc:'#FF3C00'}
+  {id:'weather',label:'WEATHER',icon:'◎',acc:'#FF3C00'},
+  {id:'world',label:'WORLD',icon:'◉',acc:'#000'},
+  {id:'local',label:'LOCAL',icon:'◈',acc:'#000'},
+  {id:'ai',label:'AI + STARTUPS',icon:'◆',acc:'#FF3C00'}
 ];
 
 function getP(id,loc){
   var l=loc||'unknown location';
   return {
-    weather:'Today: '+DS+'. Location: '+l+'. Weather briefing. Start with data, no preamble.\nWEATHER - [CITY]\nNow: [temp C/F, condition]\nMorning: [brief]\nAfternoon: [brief]\nEvening: [brief]\nTip: [one tip]\nPlain text only. Max 120 words.',
-    world:'Today: '+DS+'. Top 4 world news stories right now. Each:\n[HEADLINE CAPS]\n[2 sentences]\nNo intro. Plain text. Max 200 words.',
-    local:'Today: '+DS+'. Location: '+l+'. Top 3 local news items. Each:\n[HEADLINE CAPS]\n[1-2 sentences]\nNo intro. Plain text. Max 150 words.',
-    ai:'Today: '+DS+'. Top AI/startup news this week. Each:\n[HEADLINE CAPS]\n[2 sentences]\n2 breakthroughs, 2 funding rounds, 1 trend. No intro. Plain text. Max 200 words.'
+    weather:'Today: '+DS+'. Location: '+l+'. Weather briefing — go straight to data, no preamble.\nWEATHER - [CITY]\nNow: [temp C / F, condition]\nMorning: [brief]\nAfternoon: [brief]\nEvening: [brief]\nTip: [one tip]\nMax 100 words. Plain text only.',
+    world:'Today: '+DS+'. 4 top world news stories right now. Each:\n[HEADLINE IN CAPS]\n[2 sentences]\nNo intro. Max 180 words. Plain text only.',
+    local:'Today: '+DS+'. Location: '+l+'. 3 local news items. Each:\n[HEADLINE IN CAPS]\n[1-2 sentences]\nNo intro. Max 140 words. Plain text only.',
+    ai:'Today: '+DS+'. Top AI/startup news. Each:\n[HEADLINE IN CAPS]\n[2 sentences]\n2 breakthroughs + 2 funding rounds + 1 trend. No intro. Max 180 words. Plain text only.'
   }[id];
 }
 
@@ -184,9 +199,9 @@ var S={r:{},l:{},e:{},started:false,loc:null};
 
 function setSt(ld,dn){
   var el=document.getElementById('sd');
-  if(ld){el.style.color='#FF3C00';el.textContent='&#9679; FETCHING';}
-  else if(dn){el.style.color='#000';el.textContent='&#9679; LIVE';}
-  else{el.style.color='#999';el.textContent='&#9679; STANDBY';}
+  if(ld){el.style.color='#FF3C00';el.textContent='• FETCHING';}
+  else if(dn){el.style.color='#000';el.textContent='• LIVE';}
+  else{el.style.color='#999';el.textContent='• STANDBY';}
 }
 function mkDots(n,c){
   var h='';for(var i=0;i<n;i++) h+='<div class="dot" style="background:'+(i%3===0?(c||'#000'):'#ccc')+'"></div>';
@@ -206,7 +221,14 @@ function rcard(sec,i){
   if(err) body='<div class="er">'+err+'</div>';
   else if(ld) body='<div class="sk">'+[88,70,80,60,75].map(function(w,j){return '<div class="skl" style="width:'+w+'%;animation-delay:'+(j*.12)+'s"></div>';}).join('')+'</div>';
   else if(con) body='<div class="con">'+rcon(con)+'</div>';
-  return '<div class="card'+(live?' live':'')+'" id="c-'+id+'" style="--acc:'+acc+';animation:fu .3s ease '+(i*.08)+'s both"><div class="ch" onclick="tog(\''+id+'\')"><div class="chl"><span class="ci" style="color:'+acc+';'+(ld?'animation:pu 1s ease-in-out infinite':'')+'">'+icon+'</span><span class="ct">'+label+'</span>'+(ld?'<span class="ctag" style="color:#888">LOADING_</span>':'')+(live?'<span class="ctag" style="color:'+acc+'">&#9679; LIVE</span>':'')+'</div><span class="ctog" id="t-'+id+'">&#8722;</span></div><div class="cb" id="b-'+id+'">'+body+'</div></div>';
+  return '<div class="card'+(live?' live':'')+'" id="c-'+id+'" style="--acc:'+acc+';animation:fu .3s ease '+(i*.08)+'s both">'
+    +'<div class="ch" onclick="tog(\''+id+'\')"><div class="chl">'
+    +'<span class="ci" style="color:'+acc+';'+(ld?'animation:pu 1s ease-in-out infinite':'')+'">'+icon+'</span>'
+    +'<span class="ct">'+label+'</span>'
+    +(ld?'<span class="ctag" style="color:#888">LOADING_</span>':'')
+    +(live?'<span class="ctag" style="color:'+acc+'">• LIVE</span>':'')
+    +'</div><span class="ctog" id="t-'+id+'">&#8722;</span></div>'
+    +'<div class="cb" id="b-'+id+'">'+body+'</div></div>';
 }
 function tog(id){
   var b=document.getElementById('b-'+id),t=document.getElementById('t-'+id);
@@ -217,7 +239,14 @@ function rb(){
   var ad=S.started&&!al&&SECS.every(function(s){return S.r[s.id]||S.e[s.id];});
   setSt(al,ad);
   if(!S.started){
-    document.getElementById('bm').innerHTML='<div class="cta"><div style="margin-bottom:20px">'+mkDots(16,'#FF3C00')+'</div><div class="ey">GOOD MORNING_</div><div class="hl">Your intelligence<br>briefing awaits.</div><button class="gbtn" onclick="run()"><span>GENERATE BRIEFING</span><span class="arr">&#8594;</span></button><div class="csub">WEATHER &middot; WORLD &middot; LOCAL &middot; AI</div></div>';
+    document.getElementById('bm').innerHTML=
+      '<div class="cta">'
+      +'<div style="margin-bottom:18px">'+mkDots(16,'#FF3C00')+'</div>'
+      +'<div class="ey">GOOD MORNING_</div>'
+      +'<div class="hl">Your intelligence<br>briefing awaits.</div>'
+      +'<button class="gbtn" onclick="run()"><span>GENERATE BRIEFING</span><span class="arr">&#8594;</span></button>'
+      +'<div class="csub">WEATHER &middot; WORLD &middot; LOCAL &middot; AI</div>'
+      +'</div>';
     return;
   }
   var html='<div class="secs">';
@@ -227,205 +256,9 @@ function rb(){
   document.getElementById('bm').innerHTML=html;
 }
 
-// Staggered fetch — 1.5s delay between each to avoid rate limit
 async function fetchS(id,loc,delay){
   await new Promise(function(r){setTimeout(r,delay);});
-  S.l[id]=true;S.e[id]=null;
-// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
-var LLU_EMAIL='fmchristensen@gmail.com';
-var LLU_PASS='Fercamfel1963!';
-var gToken=null,gPatientId=null;
-var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
-var gEndpoint=null;
-
-var LLU_HEADERS={
-  'Content-Type':'application/json',
-  'product':'llu.android',
-  'version':'4.7.0',
-  'Accept':'application/json'
-};
-
-async function lluLogin(){
-  for(var i=0;i<ENDPOINTS.length;i++){
-    try{
-      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
-        method:'POST',
-        headers:LLU_HEADERS,
-        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-      });
-      var d=await r.json();
-      if(d.status===0&&d.data&&d.data.authTicket){
-        gToken=d.data.authTicket.token;
-        gEndpoint=ENDPOINTS[i];
-        // Check if redirect needed
-        if(d.data.redirect&&d.data.region){
-          gEndpoint='https://api-'+d.data.region+'.libreview.io';
-          // retry with correct region
-          var r2=await fetch(gEndpoint+'/llu/auth/login',{
-            method:'POST',headers:LLU_HEADERS,
-            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-          });
-          var d2=await r2.json();
-          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
-        }
-        return true;
-      }
-    }catch(e){}
-  }
-  return false;
-}
-
-async function lluConnections(){
-  if(!gToken) return null;
-  try{
-    var r=await fetch(gEndpoint+'/llu/connections',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
-    var d=await r.json();
-    if(d.data&&d.data.length>0){
-      gPatientId=d.data[0].patientId;
-      return d.data[0];
-    }
-  }catch(e){}
-  return null;
-}
-
-async function lluGraph(){
-  if(!gToken||!gPatientId) return null;
-  try{
-    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
-    var d=await r.json();
-    return d.data||null;
-  }catch(e){return null;}
-}
-
-function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
-function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
-function glucoseStatus(v){
-  if(v<70) return {label:'LOW',color:'#e74c3c'};
-  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<250) return {label:'HIGH',color:'#e67e22'};
-  return {label:'VERY HIGH',color:'#e74c3c'};
-}
-
-async function getGlucose(){
-  try{
-    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
-    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
-    var graph=await lluGraph();
-    if(!graph) return null;
-    var cur=graph.connection&&graph.connection.glucoseMeasurement;
-    if(!cur) return null;
-    return {
-      value:cur.Value,
-      mmol:mmol(cur.Value),
-      trend:cur.TrendArrow,
-      timestamp:cur.Timestamp,
-      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
-    };
-  }catch(e){return null;}
-}
-
-// Intercept assistant messages about glucose
-var _origSend=send;
-
-// Enhanced send with glucose detection
-async function send(){
-  var inp=document.getElementById('ainp');
-  var text=inp.value.trim();
-  if(!text&&!attachedFile)return;
-
-  // Check for glucose commands
-  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
-  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
-
-  if(isGlucoseQ){
-    inp.value='';
-    am('u',text,false);
-    showTy();
-    var gd=await getGlucose();
-    rmTy();
-    if(gd){
-      var st=glucoseStatus(gd.value);
-      var arrow=trendArrow(gd.trend);
-      var histHtml='';
-      if(gd.history&&gd.history.length>0){
-        var vals=gd.history.map(function(p){return p.v;});
-        var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
-        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
-        vals.forEach(function(v){
-          var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
-          var h=Math.max(6,Math.round(pct*0.36)+4);
-          var c=glucoseStatus(v).color;
-          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
-        });
-        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
-      }
-      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
-      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
-      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
-      msg+=histHtml;
-      // Also add interpretation via Claude
-      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
-      try{
-        var res=await fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
-        });
-        var data=await res.json();
-        if(!data.error){
-          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
-          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
-          hist.push({role:'assistant',content:interp});
-        }
-      }catch(e){}
-      am('a',msg,true);
-    } else {
-      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
-    }
-    return;
-  }
-
-  // Regular assistant flow
-  if(!text&&!attachedFile)return;
-  inp.value='';
-  var userContent=[];
-  var displayHtml='';
-  if(attachedFile){
-    var f=attachedFile;
-    var isImg=f.type.startsWith('image/');
-    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
-    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
-    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
-    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
-    if(text)userContent.push({type:'text',text:text});
-    clearFile();
-  } else {
-    displayHtml=text;userContent=text;
-  }
-  am('u',displayHtml,true);
-  hist.push({role:'user',content:userContent});
-  showTy();
-  try{
-    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
-    });
-    var data=await res.json();rmTy();
-    if(data.error)throw new Error(data.error.message);
-    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
-    hist.push({role:'assistant',content:reply});
-    am('a',reply,false);
-  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
-}
-
-rb();
+  S.l[id]=true;S.e[id]=null;rb();
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -437,242 +270,34 @@ rb();
     var text=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
     S.r[id]=text||'(no content)';
   }catch(e){S.e[id]=e.message||'Failed';}
-  S.l[id]=false;
-// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
-var LLU_EMAIL='fmchristensen@gmail.com';
-var LLU_PASS='Fercamfel1963!';
-var gToken=null,gPatientId=null;
-var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
-var gEndpoint=null;
-
-var LLU_HEADERS={
-  'Content-Type':'application/json',
-  'product':'llu.android',
-  'version':'4.7.0',
-  'Accept':'application/json'
-};
-
-async function lluLogin(){
-  for(var i=0;i<ENDPOINTS.length;i++){
-    try{
-      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
-        method:'POST',
-        headers:LLU_HEADERS,
-        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-      });
-      var d=await r.json();
-      if(d.status===0&&d.data&&d.data.authTicket){
-        gToken=d.data.authTicket.token;
-        gEndpoint=ENDPOINTS[i];
-        // Check if redirect needed
-        if(d.data.redirect&&d.data.region){
-          gEndpoint='https://api-'+d.data.region+'.libreview.io';
-          // retry with correct region
-          var r2=await fetch(gEndpoint+'/llu/auth/login',{
-            method:'POST',headers:LLU_HEADERS,
-            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-          });
-          var d2=await r2.json();
-          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
-        }
-        return true;
-      }
-    }catch(e){}
-  }
-  return false;
-}
-
-async function lluConnections(){
-  if(!gToken) return null;
-  try{
-    var r=await fetch(gEndpoint+'/llu/connections',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
-    var d=await r.json();
-    if(d.data&&d.data.length>0){
-      gPatientId=d.data[0].patientId;
-      return d.data[0];
-    }
-  }catch(e){}
-  return null;
-}
-
-async function lluGraph(){
-  if(!gToken||!gPatientId) return null;
-  try{
-    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
-    var d=await r.json();
-    return d.data||null;
-  }catch(e){return null;}
-}
-
-function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
-function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
-function glucoseStatus(v){
-  if(v<70) return {label:'LOW',color:'#e74c3c'};
-  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<250) return {label:'HIGH',color:'#e67e22'};
-  return {label:'VERY HIGH',color:'#e74c3c'};
-}
-
-async function getGlucose(){
-  try{
-    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
-    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
-    var graph=await lluGraph();
-    if(!graph) return null;
-    var cur=graph.connection&&graph.connection.glucoseMeasurement;
-    if(!cur) return null;
-    return {
-      value:cur.Value,
-      mmol:mmol(cur.Value),
-      trend:cur.TrendArrow,
-      timestamp:cur.Timestamp,
-      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
-    };
-  }catch(e){return null;}
-}
-
-// Intercept assistant messages about glucose
-var _origSend=send;
-
-// Enhanced send with glucose detection
-async function send(){
-  var inp=document.getElementById('ainp');
-  var text=inp.value.trim();
-  if(!text&&!attachedFile)return;
-
-  // Check for glucose commands
-  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
-  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
-
-  if(isGlucoseQ){
-    inp.value='';
-    am('u',text,false);
-    showTy();
-    var gd=await getGlucose();
-    rmTy();
-    if(gd){
-      var st=glucoseStatus(gd.value);
-      var arrow=trendArrow(gd.trend);
-      var histHtml='';
-      if(gd.history&&gd.history.length>0){
-        var vals=gd.history.map(function(p){return p.v;});
-        var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
-        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
-        vals.forEach(function(v){
-          var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
-          var h=Math.max(6,Math.round(pct*0.36)+4);
-          var c=glucoseStatus(v).color;
-          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
-        });
-        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
-      }
-      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
-      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
-      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
-      msg+=histHtml;
-      // Also add interpretation via Claude
-      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
-      try{
-        var res=await fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
-        });
-        var data=await res.json();
-        if(!data.error){
-          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
-          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
-          hist.push({role:'assistant',content:interp});
-        }
-      }catch(e){}
-      am('a',msg,true);
-    } else {
-      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
-    }
-    return;
-  }
-
-  // Regular assistant flow
-  if(!text&&!attachedFile)return;
-  inp.value='';
-  var userContent=[];
-  var displayHtml='';
-  if(attachedFile){
-    var f=attachedFile;
-    var isImg=f.type.startsWith('image/');
-    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
-    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
-    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
-    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
-    if(text)userContent.push({type:'text',text:text});
-    clearFile();
-  } else {
-    displayHtml=text;userContent=text;
-  }
-  am('u',displayHtml,true);
-  hist.push({role:'user',content:userContent});
-  showTy();
-  try{
-    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
-    });
-    var data=await res.json();rmTy();
-    if(data.error)throw new Error(data.error.message);
-    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
-    hist.push({role:'assistant',content:reply});
-    am('a',reply,false);
-  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
-}
-
-rb();
+  S.l[id]=false;rb();
 }
 async function run(){
   S.r={};S.e={};S.l={};S.started=true;
-  SECS.forEach(function(s){S.l[s.id]=true;});
-// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
-var LLU_EMAIL='fmchristensen@gmail.com';
-var LLU_PASS='Fercamfel1963!';
-var gToken=null,gPatientId=null;
-var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
-var gEndpoint=null;
+  SECS.forEach(function(s){S.l[s.id]=true;});rb();
+  var loc=S.loc;
+  if(!loc){try{await new Promise(function(res){navigator.geolocation.getCurrentPosition(function(p){loc='lat '+p.coords.latitude.toFixed(2)+', lon '+p.coords.longitude.toFixed(2);S.loc=loc;res();},res,{timeout:4000});});}catch(e){}}
+  SECS.forEach(function(s,i){fetchS(s.id,loc,i*2200);});
+}
 
-var LLU_HEADERS={
-  'Content-Type':'application/json',
-  'product':'llu.android',
-  'version':'4.7.0',
-  'Accept':'application/json'
-};
+// GLUCOSE
+var LLU_E='fmchristensen@gmail.com',LLU_P='Fercamfel1963!';
+var gTok=null,gPid=null,gEp=null;
+var LLU_EPS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
+var LLU_H={'Content-Type':'application/json','product':'llu.android','version':'4.7.0','Accept':'application/json'};
 
 async function lluLogin(){
-  for(var i=0;i<ENDPOINTS.length;i++){
+  for(var i=0;i<LLU_EPS.length;i++){
     try{
-      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
-        method:'POST',
-        headers:LLU_HEADERS,
-        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-      });
+      var r=await fetch(LLU_EPS[i]+'/llu/auth/login',{method:'POST',headers:LLU_H,body:JSON.stringify({email:LLU_E,password:LLU_P})});
       var d=await r.json();
       if(d.status===0&&d.data&&d.data.authTicket){
-        gToken=d.data.authTicket.token;
-        gEndpoint=ENDPOINTS[i];
-        // Check if redirect needed
+        gTok=d.data.authTicket.token;gEp=LLU_EPS[i];
         if(d.data.redirect&&d.data.region){
-          gEndpoint='https://api-'+d.data.region+'.libreview.io';
-          // retry with correct region
-          var r2=await fetch(gEndpoint+'/llu/auth/login',{
-            method:'POST',headers:LLU_HEADERS,
-            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-          });
+          gEp='https://api-'+d.data.region+'.libreview.io';
+          var r2=await fetch(gEp+'/llu/auth/login',{method:'POST',headers:LLU_H,body:JSON.stringify({email:LLU_E,password:LLU_P})});
           var d2=await r2.json();
-          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
+          if(d2.data&&d2.data.authTicket)gTok=d2.data.authTicket.token;
         }
         return true;
       }
@@ -680,188 +305,57 @@ async function lluLogin(){
   }
   return false;
 }
-
-async function lluConnections(){
-  if(!gToken) return null;
+async function lluConn(){
   try{
-    var r=await fetch(gEndpoint+'/llu/connections',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
+    var r=await fetch(gEp+'/llu/connections',{headers:Object.assign({},LLU_H,{'Authorization':'Bearer '+gTok})});
     var d=await r.json();
-    if(d.data&&d.data.length>0){
-      gPatientId=d.data[0].patientId;
-      return d.data[0];
-    }
+    if(d.data&&d.data.length>0){gPid=d.data[0].patientId;return d.data[0];}
   }catch(e){}
   return null;
 }
-
 async function lluGraph(){
-  if(!gToken||!gPatientId) return null;
   try{
-    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
-    var d=await r.json();
-    return d.data||null;
+    var r=await fetch(gEp+'/llu/connections/'+gPid+'/graph',{headers:Object.assign({},LLU_H,{'Authorization':'Bearer '+gTok})});
+    var d=await r.json();return d.data||null;
   }catch(e){return null;}
 }
-
-function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
-function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
-function glucoseStatus(v){
-  if(v<70) return {label:'LOW',color:'#e74c3c'};
-  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<250) return {label:'HIGH',color:'#e67e22'};
-  return {label:'VERY HIGH',color:'#e74c3c'};
+function mmol(v){return (v/18.0182).toFixed(1);}
+function arrow(t){return ['','↑↑','↑','↗','→','↘','↓','↓↓','?','?'][t]||'→';}
+function gstat(v){
+  if(v<70)return{lab:'LOW',col:'#e74c3c'};
+  if(v<=180)return{lab:'IN RANGE',col:'#27ae60'};
+  if(v<=250)return{lab:'HIGH',col:'#e67e22'};
+  return{lab:'VERY HIGH',col:'#e74c3c'};
 }
-
 async function getGlucose(){
   try{
-    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
-    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
-    var graph=await lluGraph();
-    if(!graph) return null;
-    var cur=graph.connection&&graph.connection.glucoseMeasurement;
-    if(!cur) return null;
-    return {
-      value:cur.Value,
-      mmol:mmol(cur.Value),
-      trend:cur.TrendArrow,
-      timestamp:cur.Timestamp,
-      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
-    };
+    if(!gTok){var ok=await lluLogin();if(!ok)return null;}
+    if(!gPid){var c=await lluConn();if(!c)return null;}
+    var g=await lluGraph();if(!g)return null;
+    var cur=g.connection&&g.connection.glucoseMeasurement;
+    if(!cur)return null;
+    return{value:cur.Value,mmol:mmol(cur.Value),trend:cur.TrendArrow,ts:cur.Timestamp,hist:(g.graphData||[]).slice(-8).map(function(p){return{v:p.Value};})};
   }catch(e){return null;}
 }
 
-// Intercept assistant messages about glucose
-var _origSend=send;
-
-// Enhanced send with glucose detection
-async function send(){
-  var inp=document.getElementById('ainp');
-  var text=inp.value.trim();
-  if(!text&&!attachedFile)return;
-
-  // Check for glucose commands
-  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
-  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
-
-  if(isGlucoseQ){
-    inp.value='';
-    am('u',text,false);
-    showTy();
-    var gd=await getGlucose();
-    rmTy();
-    if(gd){
-      var st=glucoseStatus(gd.value);
-      var arrow=trendArrow(gd.trend);
-      var histHtml='';
-      if(gd.history&&gd.history.length>0){
-        var vals=gd.history.map(function(p){return p.v;});
-        var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
-        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
-        vals.forEach(function(v){
-          var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
-          var h=Math.max(6,Math.round(pct*0.36)+4);
-          var c=glucoseStatus(v).color;
-          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
-        });
-        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
-      }
-      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
-      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
-      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
-      msg+=histHtml;
-      // Also add interpretation via Claude
-      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
-      try{
-        var res=await fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
-        });
-        var data=await res.json();
-        if(!data.error){
-          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
-          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
-          hist.push({role:'assistant',content:interp});
-        }
-      }catch(e){}
-      am('a',msg,true);
-    } else {
-      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
-    }
-    return;
-  }
-
-  // Regular assistant flow
-  if(!text&&!attachedFile)return;
-  inp.value='';
-  var userContent=[];
-  var displayHtml='';
-  if(attachedFile){
-    var f=attachedFile;
-    var isImg=f.type.startsWith('image/');
-    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
-    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
-    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
-    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
-    if(text)userContent.push({type:'text',text:text});
-    clearFile();
-  } else {
-    displayHtml=text;userContent=text;
-  }
-  am('u',displayHtml,true);
-  hist.push({role:'user',content:userContent});
-  showTy();
-  try{
-    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
-    var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
-    });
-    var data=await res.json();rmTy();
-    if(data.error)throw new Error(data.error.message);
-    var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
-    hist.push({role:'assistant',content:reply});
-    am('a',reply,false);
-  }catch(e){rmTy();am('a','ERR: '+e.message,false);}
-}
-
-rb();
-  var loc=S.loc;
-  if(!loc){try{await new Promise(function(res){navigator.geolocation.getCurrentPosition(function(p){loc='lat '+p.coords.latitude.toFixed(2)+', lon '+p.coords.longitude.toFixed(2);S.loc=loc;res();},res,{timeout:4000});});}catch(e){}}
-  // Stagger: 0, 2000, 4000, 6000ms
-  SECS.forEach(function(s,i){fetchS(s.id,loc,i*2000);});
-}
-
-// ── ASSISTANT ──
-var hist=[];
-var attachedFile=null;
+// ASSISTANT
+var hist=[];var attachedFile=null;
 
 function onFile(e){
   var f=e.target.files[0];if(!f)return;
   attachedFile=f;
-  var icon=f.type.startsWith('image/')?'&#128247;':'&#128206;';
-  document.getElementById('prevIcon').innerHTML=icon;
+  document.getElementById('prevIcon').textContent=f.type.startsWith('image/')?'🖼':'📄';
   document.getElementById('prevName').textContent=f.name+' ('+Math.round(f.size/1024)+'KB)';
   document.getElementById('prevBar').style.display='flex';
 }
-function clearFile(){
-  attachedFile=null;
-  document.getElementById('prevBar').style.display='none';
-  document.getElementById('fileInput').value='';
-}
+function clearFile(){attachedFile=null;document.getElementById('prevBar').style.display='none';document.getElementById('fileIn').value='';}
 
 function am(role,html,isHtml){
   var msgs=document.getElementById('am');
   var div=document.createElement('div');div.className='msg '+(role==='u'?'u':'a');
-  if(role==='a') div.innerHTML='<div class="ml">ASSISTANT_</div>'+(isHtml?html:html.replace(/\n/g,'<br>'));
+  if(role==='a')div.innerHTML='<div class="ml">ASSISTANT_</div>'+(isHtml?html:html.replace(/\n/g,'<br>'));
   else div.innerHTML=html;
-  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;return div;
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
 }
 function showTy(){
   var msgs=document.getElementById('am');
@@ -871,223 +365,87 @@ function showTy(){
 }
 function rmTy(){var t=document.getElementById('ty');if(t)t.remove();}
 
-
-
-// ── VOICE INPUT ──
-var recog=null;var isRec=false;
-if('webkitSpeechRecognition' in window||'SpeechRecognition' in window){
-  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  recog=new SR();recog.continuous=false;recog.interimResults=true;recog.lang='en-US';
-  recog.onresult=function(e){
-    var t=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');
-    document.getElementById('ainp').value=t;
-  };
-  recog.onend=function(){
-    isRec=false;
-    document.getElementById('micBtn').classList.remove('rec');
-    document.getElementById('micBtn').innerHTML='&#127908;';
-  };
-  recog.onerror=function(){isRec=false;document.getElementById('micBtn').classList.remove('rec');};
-}
-function toggleVoice(){
-  if(!recog){alert('Voice not supported in this browser.');return;}
-  if(isRec){recog.stop();isRec=false;document.getElementById('micBtn').classList.remove('rec');document.getElementById('micBtn').innerHTML='&#127908;';}
-  else{recog.start();isRec=true;document.getElementById('micBtn').classList.add('rec');document.getElementById('micBtn').innerHTML='&#128308;';}
-}
-
-
-// ── GLUCOSE (FreeStyle Libre via LibreLinkUp) ──
-var LLU_EMAIL='fmchristensen@gmail.com';
-var LLU_PASS='Fercamfel1963!';
-var gToken=null,gPatientId=null;
-var ENDPOINTS=['https://api-eu.libreview.io','https://api-us.libreview.io','https://api-la.libreview.io','https://api.libreview.io'];
-var gEndpoint=null;
-
-var LLU_HEADERS={
-  'Content-Type':'application/json',
-  'product':'llu.android',
-  'version':'4.7.0',
-  'Accept':'application/json'
-};
-
-async function lluLogin(){
-  for(var i=0;i<ENDPOINTS.length;i++){
-    try{
-      var r=await fetch(ENDPOINTS[i]+'/llu/auth/login',{
-        method:'POST',
-        headers:LLU_HEADERS,
-        body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-      });
-      var d=await r.json();
-      if(d.status===0&&d.data&&d.data.authTicket){
-        gToken=d.data.authTicket.token;
-        gEndpoint=ENDPOINTS[i];
-        // Check if redirect needed
-        if(d.data.redirect&&d.data.region){
-          gEndpoint='https://api-'+d.data.region+'.libreview.io';
-          // retry with correct region
-          var r2=await fetch(gEndpoint+'/llu/auth/login',{
-            method:'POST',headers:LLU_HEADERS,
-            body:JSON.stringify({email:LLU_EMAIL,password:LLU_PASS})
-          });
-          var d2=await r2.json();
-          if(d2.data&&d2.data.authTicket) gToken=d2.data.authTicket.token;
-        }
-        return true;
-      }
-    }catch(e){}
-  }
-  return false;
-}
-
-async function lluConnections(){
-  if(!gToken) return null;
-  try{
-    var r=await fetch(gEndpoint+'/llu/connections',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
-    var d=await r.json();
-    if(d.data&&d.data.length>0){
-      gPatientId=d.data[0].patientId;
-      return d.data[0];
-    }
-  }catch(e){}
-  return null;
-}
-
-async function lluGraph(){
-  if(!gToken||!gPatientId) return null;
-  try{
-    var r=await fetch(gEndpoint+'/llu/connections/'+gPatientId+'/graph',{
-      headers:Object.assign({},LLU_HEADERS,{'Authorization':'Bearer '+gToken})
-    });
-    var d=await r.json();
-    return d.data||null;
-  }catch(e){return null;}
-}
-
-function mmol(mgdl){return (mgdl/18.0182).toFixed(1);}
-function trendArrow(t){return ['','&#8593;&#8593;','&#8593;','&#8599;','&#8594;','&#8600;','&#8595;','&#8595;&#8595;','&#63;','&#63;'][t]||'&#8594;';}
-function glucoseStatus(v){
-  if(v<70) return {label:'LOW',color:'#e74c3c'};
-  if(v<100) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<180) return {label:'IN RANGE',color:'#27ae60'};
-  if(v<250) return {label:'HIGH',color:'#e67e22'};
-  return {label:'VERY HIGH',color:'#e74c3c'};
-}
-
-async function getGlucose(){
-  try{
-    if(!gToken){var ok=await lluLogin();if(!ok) return null;}
-    if(!gPatientId){var conn=await lluConnections();if(!conn) return null;}
-    var graph=await lluGraph();
-    if(!graph) return null;
-    var cur=graph.connection&&graph.connection.glucoseMeasurement;
-    if(!cur) return null;
-    return {
-      value:cur.Value,
-      mmol:mmol(cur.Value),
-      trend:cur.TrendArrow,
-      timestamp:cur.Timestamp,
-      history:(graph.graphData||[]).slice(-8).map(function(p){return {v:p.Value,t:p.Timestamp};})
-    };
-  }catch(e){return null;}
-}
-
-// Intercept assistant messages about glucose
-var _origSend=send;
-
-// Enhanced send with glucose detection
 async function send(){
   var inp=document.getElementById('ainp');
   var text=inp.value.trim();
   if(!text&&!attachedFile)return;
 
-  // Check for glucose commands
-  var glcWords=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper','glycemia'];
-  var isGlucoseQ=glcWords.some(function(w){return text.toLowerCase().indexOf(w)>=0;});
-
-  if(isGlucoseQ){
-    inp.value='';
-    am('u',text,false);
-    showTy();
-    var gd=await getGlucose();
-    rmTy();
+  // Glucose detection
+  var glcW=['glucose','sugar','blood sugar','cgm','libre','reading','level','range','mmol','mg/dl','hypo','hyper'];
+  if(text&&glcW.some(function(w){return text.toLowerCase().indexOf(w)>=0;})){
+    inp.value='';am('u',text,false);showTy();
+    var gd=await getGlucose();rmTy();
     if(gd){
-      var st=glucoseStatus(gd.value);
-      var arrow=trendArrow(gd.trend);
-      var histHtml='';
-      if(gd.history&&gd.history.length>0){
-        var vals=gd.history.map(function(p){return p.v;});
+      var st=gstat(gd.value);
+      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.col+';margin-bottom:8px">• GLUCOSE '+st.lab+'</div>';
+      msg+='<div style="font-size:30px;font-weight:900;font-family:Courier New,monospace;color:'+st.col+';line-height:1">'+gd.mmol+' <span style="font-size:14px;font-weight:400">mmol/L</span> <span style="font-size:24px">'+arrow(gd.trend)+'</span></div>';
+      msg+='<div style="font-size:11px;color:#888;margin-top:4px;font-family:Courier New,monospace">'+gd.value+' mg/dL &middot; '+gd.ts+'</div>';
+      if(gd.hist&&gd.hist.length){
+        var vals=gd.hist.map(function(p){return p.v;});
         var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
-        histHtml='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:3px;height:40px">';
+        msg+='<div style="margin-top:10px;display:flex;align-items:flex-end;gap:4px;height:44px">';
         vals.forEach(function(v){
           var pct=mx===mn?50:Math.round((v-mn)/(mx-mn)*100);
-          var h=Math.max(6,Math.round(pct*0.36)+4);
-          var c=glucoseStatus(v).color;
-          histHtml+='<div style="width:8px;height:'+h+'px;background:'+c+';border-radius:1px" title="'+mmol(v)+' mmol/L"></div>';
+          var h=Math.max(6,Math.round(pct*.38)+6);
+          msg+='<div style="width:9px;height:'+h+'px;background:'+gstat(v).col+';border-radius:1px" title="'+mmol(v)+'"></div>';
         });
-        histHtml+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#aaa;margin-top:2px;letter-spacing:.08em">LAST 8 READINGS</div>';
+        msg+='</div><div style="font-family:Courier New,monospace;font-size:9px;color:#bbb;margin-top:3px;letter-spacing:.08em">LAST 8 READINGS</div>';
       }
-      var msg='<div style="font-family:Courier New,monospace;font-size:11px;font-weight:700;letter-spacing:.15em;color:'+st.color+';margin-bottom:8px">&#9679; GLUCOSE '+st.label+'</div>';
-      msg+='<div style="font-size:28px;font-weight:900;font-family:Courier New,monospace;color:'+st.color+';line-height:1">'+gd.mmol+' <span style="font-size:14px">mmol/L</span> <span style="font-size:22px">'+arrow+'</span></div>';
-      msg+='<div style="font-size:12px;color:#888;margin-top:4px;font-family:Courier New,monospace">('+gd.value+' mg/dL) &middot; '+gd.timestamp+'</div>';
-      msg+=histHtml;
-      // Also add interpretation via Claude
-      hist.push({role:'user',content:'My current glucose is '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend: '+arrow+'. The user asked: "'+text+'". Give a brief 1-2 sentence interpretation and any recommendation. Be direct, no preamble.'});
+      // AI interpretation
       try{
-        var res=await fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',
-          headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:150,messages:hist})
+        var iRes=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:120,messages:[{role:'user',content:'Glucose: '+gd.mmol+' mmol/L ('+gd.value+' mg/dL), trend '+arrow(gd.trend)+'. User asked: "'+text+'". Give 1-2 sentence interpretation + recommendation. Direct, no preamble.'}]})
         });
-        var data=await res.json();
-        if(!data.error){
-          var interp=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
-          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';
-          hist.push({role:'assistant',content:interp});
-        }
+        var iData=await iRes.json();
+        if(!iData.error){var interp=iData.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim();
+          msg+='<div style="margin-top:10px;font-size:13px;line-height:1.6;color:#333;border-top:1px solid #eee;padding-top:8px">'+interp+'</div>';}
       }catch(e){}
       am('a',msg,true);
-    } else {
-      am('a','Could not retrieve glucose data. Make sure LibreLinkUp is active and your sensor is syncing. Try asking again in a moment.',false);
+    }else{
+      am('a','Could not connect to LibreLinkUp. Make sure your FreeStyle Libre sensor is actively syncing to the app and try again.',false);
     }
     return;
   }
 
-  // Regular assistant flow
-  if(!text&&!attachedFile)return;
   inp.value='';
-  var userContent=[];
-  var displayHtml='';
+  var uContent=[],dHtml='';
   if(attachedFile){
-    var f=attachedFile;
-    var isImg=f.type.startsWith('image/');
-    displayHtml='<div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">'+(isImg?'&#128247;':'&#128206;')+'</span><span>'+f.name+'</span></div>'+(text?'<div style="margin-top:6px">'+text+'</div>':'');
-    var fileData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
-    if(isImg){var b64=fileData.split(',')[1];userContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
-    else{userContent.push({type:'text',text:'[File: '+f.name+']\n'+fileData.substring(0,8000)});}
-    if(text)userContent.push({type:'text',text:text});
+    var f=attachedFile,isImg=f.type.startsWith('image/');
+    dHtml='<span>'+(isImg?'🖼 ':'📄 ')+f.name+'</span>'+(text?'<br>'+text:'');
+    var fData=await new Promise(function(res){var r=new FileReader();r.onload=function(e){res(e.target.result);};if(isImg)r.readAsDataURL(f);else r.readAsText(f);});
+    if(isImg){var b64=fData.split(',')[1];uContent.push({type:'image',source:{type:'base64',media_type:f.type,data:b64}});}
+    else{uContent.push({type:'text',text:'[File: '+f.name+']\n'+fData.substring(0,8000)});}
+    if(text)uContent.push({type:'text',text:text});
     clearFile();
-  } else {
-    displayHtml=text;userContent=text;
-  }
-  am('u',displayHtml,true);
-  hist.push({role:'user',content:userContent});
-  showTy();
+  }else{dHtml=text;uContent=text;}
+
+  am('u',dHtml,true);hist.push({role:'user',content:uContent});showTy();
   try{
-    var sys='You are a smart personal assistant. Today is '+DS+'. Help with Google Calendar, Gmail, Drive, Docs, Sheets, Maps, YouTube and general questions. Analyze files/images. Be concise.';
+    var sys='You are a smart personal assistant. Today is '+DS+'. Help with questions, analysis, Google services guidance, and general info. For live Google account data (Gmail, Calendar, Drive), tell user to open claude.ai where their Google account is connected. Analyze any files or images. Be concise and direct.';
     var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      method:'POST',headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-haiku-4-5',max_tokens:800,system:sys,messages:hist})
     });
     var data=await res.json();rmTy();
     if(data.error)throw new Error(data.error.message);
     var reply=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n').trim();
-    hist.push({role:'assistant',content:reply});
-    am('a',reply,false);
+    hist.push({role:'assistant',content:reply});am('a',reply,false);
   }catch(e){rmTy();am('a','ERR: '+e.message,false);}
+}
+
+// VOICE
+var recog=null,isRec=false;
+if(window.SpeechRecognition||window.webkitSpeechRecognition){
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recog=new SR();recog.continuous=false;recog.interimResults=true;recog.lang='en-US';
+  recog.onresult=function(e){document.getElementById('ainp').value=Array.from(e.results).map(function(r){return r[0].transcript;}).join('');};
+  recog.onend=function(){isRec=false;document.getElementById('micBtn').classList.remove('rec');};
+}
+function toggleVoice(){
+  if(!recog){alert('Voice not supported in this browser.');return;}
+  if(isRec){recog.stop();isRec=false;document.getElementById('micBtn').classList.remove('rec');}
+  else{recog.start();isRec=true;document.getElementById('micBtn').classList.add('rec');}
 }
 
 rb();
